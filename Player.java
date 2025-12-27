@@ -1,0 +1,44 @@
+import javax.swing.*;
+import java.awt.event.*;
+import java.awt.*;
+
+public class Player{
+ private int x,y;
+ private int left, right, up, down;
+ //private boolean moving;
+ //public static final int LEFT = 0, RIGHT = 1, WAIT = 2;
+  
+ public Player(int xx, int yy){
+  x = xx;
+  y = yy;
+ }
+
+ public void move(boolean []keys){
+  if(keys[KeyEvent.VK_D]){
+   x += 10;
+   //dir = RIGHT;
+   //frame++;
+  }
+  else if(keys[KeyEvent.VK_A]){
+   x -= 10;
+   //dir = LEFT;
+  // frame++;
+  }
+  
+  if(keys[KeyEvent.VK_W]){
+   y -= 10;
+   //dir = UP;
+   //frame++;
+  }
+  else if(keys[KeyEvent.VK_S]){
+   y += 10;
+   //dir = DOWNN;
+  // frame++;
+  }
+ }
+
+ public void draw(Graphics g){  
+  g.setColor(Color.RED);
+  g.fillRect(x, y, 5, 10);
+ }
+}
