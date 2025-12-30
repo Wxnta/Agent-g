@@ -7,15 +7,13 @@
 */
 
 
-import javax.swing.*;
-import java.awt.event.*;
 import java.awt.*;
 
-class Sprite extends BaseFrame{
+class Main extends BaseFrame{
  Player player;
  
- public Sprite(){
-  super("Sprite", 800,600);
+ public Main(){
+  super("Main", 1200,800);
   player = new Player(500,400); 
  } 
  
@@ -27,12 +25,12 @@ class Sprite extends BaseFrame{
  public void draw(Graphics g){
   if(player==null)return;
   g.setColor(Color.WHITE);
-  g.fillRect(0,0,800,600);
+  g.fillRect(0,0,1200,800);
   player.draw(g); 
  }
  
  public static void main(String[] args) {
-  new Sprite();
+  new Main();
     } 
 }
 
