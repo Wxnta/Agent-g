@@ -8,17 +8,26 @@
 
 
 import java.awt.*;
+import java.awt.image.BufferedImage;
 
 class Main extends BaseFrame{
- Player player;
+ private Handler handler;
+ private Player player;
+ private  BufferedImage lvl;
  
  public Main(){
   super("Main", 1200,800);
-  player = new Player(500,400); 
+  handler = new Handler();
+
+  player = new Player(500,400,"player", handler); 
+  handler.addObject(player);
+  BufferedImageLoader loader = new BufferedImageLoader();
+  lvl = loader.loadBuffImg("../Assets/LvlImages/lvl1Image.png");
  } 
  
- public void move(){
-  player.move(keys);
+
+ public void update(){
+  handler.update(keys);
  }
  
  @Override
@@ -26,7 +35,7 @@ class Main extends BaseFrame{
   if(player==null)return;
   g.setColor(Color.WHITE);
   g.fillRect(0,0,1200,800);
-  player.draw(g); 
+  handler.draw(g);
  }
  
  public static void main(String[] args) {

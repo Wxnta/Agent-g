@@ -22,10 +22,9 @@
  -------------------------------------------------------------------------------------*/
 
 
-import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.awt.image.*;
+import javax.swing.*;
 
 class BaseFrame extends JFrame implements KeyListener, ActionListener, MouseMotionListener, MouseListener{
 	protected int mx,my,mb;
@@ -106,7 +105,7 @@ class BaseFrame extends JFrame implements KeyListener, ActionListener, MouseMoti
 
 
 	// should be overloaded
-	public void move(){
+	public void update(){
 		
 	}
 
@@ -118,7 +117,7 @@ class BaseFrame extends JFrame implements KeyListener, ActionListener, MouseMoti
 
 	@Override
 	public void actionPerformed(ActionEvent e){
-		move(); 	// never draw in move
+		update(); 	// never draw in update
 		repaint(); 	// only draw
 	}
 	
