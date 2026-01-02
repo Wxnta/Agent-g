@@ -4,14 +4,16 @@ import java.awt.Rectangle;
 //I needed help online to understand how to make a base class for game objects
 //It's abstract because it is meant to be extended by other classes
 public abstract class GameObject {
+  //protected because it is inherited by other classes
   protected int x,y,vx,vy;
   protected String type;
+  protected ID id;
   
     //Constructor for GameObject
-  public GameObject(int x, int y, String type){
+  public GameObject(int x, int y, ID id){
     this.x = x;
     this.y = y;
-    this.type = type;
+    this.id = id;
   }
 
   public abstract Rectangle getRect();
@@ -24,12 +26,12 @@ public abstract class GameObject {
 
    }
 
-  public String getType() {
-    return type;
+  public ID getId() {
+    return id;
   }
 
-  public void setType(String type) {
-    this.type = type;
+  public void setId(ID id) {
+    this.id = id;
   }
 
   public int getX() {

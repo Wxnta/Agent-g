@@ -1,5 +1,5 @@
 import java.util.LinkedList;
-
+// Manages our game objects tasks e.g updating for movement and drawing
 //I needed help online to understand how to make a handler class to manage game objects
 public class Handler {
     LinkedList<GameObject> object = new LinkedList<GameObject>();
