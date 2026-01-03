@@ -11,6 +11,7 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 
 class Main extends BaseFrame{
+ public static Main instance;
 public static final int WIDTH = 1200, HEIGHT = 800;
  private Handler handler;
  private Player player;
@@ -18,7 +19,9 @@ public static final int WIDTH = 1200, HEIGHT = 800;
  private  BufferedImage lvl;
  
  public Main(){
+  
   super("Main", WIDTH, HEIGHT);
+  instance = this;
   handler = new Handler();
   player = new Player(0, 0, ID.Player, handler);
   handler.addObject(player);

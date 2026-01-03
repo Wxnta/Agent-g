@@ -20,7 +20,7 @@ public class Camera {
         if(x <=0) x = 0;
         if(x >= lvlWidth - Main.WIDTH) x = lvlWidth - Main.WIDTH;
         if(y <=0) y = 0;
-        System.out.println(y);
+        
         if(y >= 350) y =  350;
     }
 

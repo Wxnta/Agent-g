@@ -5,6 +5,9 @@ public class Player extends GameObject{
 
  private int speed = 5;
  private  int width = 50, height = 50;
+ int mouseX, mouseY;
+
+    
  Handler handler;
 
  //private boolean moving;
@@ -63,9 +66,12 @@ public class Player extends GameObject{
  }
 
 
- @Override
- public void draw(Graphics g){  
-  g.setColor(Color.BLUE);
-  g.fillRect(x, y, width, height);
- }
+ 
+ public void draw(Graphics g) {
+
+    g.setColor(Color.BLUE);
+    g.fillRect(x, y, width, height);
+
+
+}
 }
