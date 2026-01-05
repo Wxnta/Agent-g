@@ -3,32 +3,35 @@ import java.awt.*;
 public class Bullets extends GameObject{
   
   private int width = 5, height = 8;
+  private int speed = 10;
   
-  public Bullets(int x, int y, ID id){
+  public Bullets(int x, int y,int targetX, int targetY, ID id){
     super(x, y, id);
-    vx = MouseInfo.getPointerInfo().getLocation().x - x;
-    vy = MouseInfo.getPointerInfo().getLocation().y - y;
+    double dx = targetX-x;
+    double dy = targetY-y;
+    double hyp = Math.sqrt((dx*dx)+(dy*dy));
+    vx = (dx/hyp) * speed;
+    vy = (dy/hyp) * speed;
   }
-
   @Override
   public Rectangle getRect() {
-    return new Rectangle(x, y, width, height);
+    return new Rectangle((int)x, (int)y, width, height);
   }
 
   @Override
   public void update(boolean[] keys) {
-    move();
+    x += vx;
+    x += vy;
   }
 
   public void move() {
-    x += vx;
-    y += vy;
+    
   }
 
   @Override
   public void draw(Graphics g) {
     g.setColor(Color.GREEN);
-    g.fillOval(x, y, width, height);
+    g.fillOval((int)x,(int) y, width, height);
   }
   
 }

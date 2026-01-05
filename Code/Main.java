@@ -8,6 +8,7 @@
 
 
 import java.awt.*;
+import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 
 class Main extends BaseFrame{
@@ -41,7 +42,22 @@ public static final int WIDTH = 1200, HEIGHT = 800;
   handler.update(keys);
   
   camera.update(player);
+  if(mb == MouseEvent.BUTTON1){
+    shoot();
+    System.out.println("I have A SHOT");
+    mb = 0;
+  }
    
+ }
+
+ private void shoot(){
+  int wmx = mx + camera.getX();
+  int wmy = my + camera.getX();
+
+  int px = (int)player.getX() + player.getWidth()/2;
+  int py = (int)player.getY() + player.getHeight()/2;
+
+  handler.addObject(new Bullets(px,py,wmx,wmy,ID.Bullet));
  }
 
  //Load level

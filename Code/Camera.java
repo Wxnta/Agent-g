@@ -11,8 +11,8 @@ public class Camera {
 
     public void update(Player player) {
       //lock coordinates to player centerA
-        this.x = player.getX() + player.getWidth() /2 - Main.WIDTH / 2;
-        this.y = player.getY() + player.getHeight() / 2 - Main.HEIGHT / 2;
+        this.x = (int)(player.getX() + player.getWidth() /2 - Main.WIDTH / 2);
+        this.y = (int)(player.getY() + player.getHeight() / 2 - Main.HEIGHT / 2);
         int lvlWidth = lvl.getWidth() * 32;
         int lvlHeight = lvl.getHeight() * 32;
 

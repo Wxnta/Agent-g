@@ -12,7 +12,7 @@ public class Block extends GameObject{
 
   @Override
   public Rectangle getRect() {
-    return new Rectangle(x, y, width, height);
+    return new Rectangle((int)x,(int) y, width, height);
   }
 
   @Override
@@ -23,7 +23,7 @@ public class Block extends GameObject{
   @Override
   public void draw(Graphics g) {
     g.setColor(Color.BLACK);
-    g.fillRect(x, y, width, height);
+    g.fillRect((int)x, (int)y, width, height);
   }
 
 

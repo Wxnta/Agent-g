@@ -62,7 +62,7 @@ public class Player extends GameObject{
 }
   @Override
  public Rectangle getRect(){
-  return new Rectangle(x, y, width, height);
+  return new Rectangle((int)x, (int)y, width, height);
  }
 
 
@@ -70,7 +70,7 @@ public class Player extends GameObject{
  public void draw(Graphics g) {
 
     g.setColor(Color.BLUE);
-    g.fillRect(x, y, width, height);
+    g.fillRect((int)x,(int) y, width, height);
 
 
 }
