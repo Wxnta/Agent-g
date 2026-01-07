@@ -77,8 +77,17 @@ class BaseFrame extends JFrame implements KeyListener, ActionListener, MouseMoti
     }
 
 	private void updateMouse(MouseEvent e){
-		mx = e.getX();
-		my = e.getY();		
+    	try{
+			Point offsetF = getLocationOnScreen();    		
+			Point offset = pane.getLocationOnScreen();    		
+			mx = e.getX() - (offset.x - offsetF.x);
+			my = e.getY() - (offset.y - offsetF.y);
+    	}
+    	catch(IllegalComponentStateException ex ){
+			mx = e.getX();
+			my = e.getY();
+			//System.out.println()		
+    	}
 	}   
 
     public void mouseEntered(MouseEvent e) {}
@@ -117,7 +126,7 @@ class BaseFrame extends JFrame implements KeyListener, ActionListener, MouseMoti
 
 	@Override
 	public void actionPerformed(ActionEvent e){
-		update(); 	// never draw in update
+		update(); 	// never draw in move
 		repaint(); 	// only draw
 	}
 	

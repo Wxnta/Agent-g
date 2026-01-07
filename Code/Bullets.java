@@ -1,17 +1,22 @@
 import java.awt.*;
+import javax.swing.ImageIcon;
 
 public class Bullets extends GameObject{
   
-  private int width = 5, height = 8;
-  private int speed = 10;
+  private int width = 20, height = 20;
+  private double  speed = 10;
+  Handler handler;
+
+  private Image bulletImg = new ImageIcon("Assets/weapons/shoot/9.png").getImage(); 
   
-  public Bullets(int x, int y,int targetX, int targetY, ID id){
+  public Bullets(int x, int y,int targetX, int targetY, ID id, Handler handler){
     super(x, y, id);
     double dx = targetX-x;
     double dy = targetY-y;
     double hyp = Math.sqrt((dx*dx)+(dy*dy));
-    vx = (dx/hyp) * speed;
-    vy = (dy/hyp) * speed;
+    vx = (dx/hyp) * speed ;
+    vy = (dy/hyp)  * speed;
+    this.handler = handler;
   }
   @Override
   public Rectangle getRect() {
@@ -21,7 +26,15 @@ public class Bullets extends GameObject{
   @Override
   public void update(boolean[] keys) {
     x += vx;
-    x += vy;
+        
+    
+    y += vy;
+    
+
+      if(checkWallCollision()){
+        handler.removeObject(this);
+      }
+      
   }
 
   public void move() {
@@ -30,8 +43,18 @@ public class Bullets extends GameObject{
 
   @Override
   public void draw(Graphics g) {
-    g.setColor(Color.GREEN);
-    g.fillOval((int)x,(int) y, width, height);
+    g.drawImage(bulletImg,(int)x,(int)y, null);
   }
+
+  private boolean checkWallCollision(){
+    for(GameObject obj : handler.object){
+        if(obj.getId() == ID.Block){
+            if(this.getRect().intersects(obj.getRect())){
+                return true;
+            }
+        }
+    }
+    return false;
+}
   
 }

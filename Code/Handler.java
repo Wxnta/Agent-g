@@ -11,16 +11,16 @@ public class Handler {
     //Updates each object in the list
     public void update(boolean[] keys) {
       
-    for (GameObject obj : object) {
-        obj.update(keys);
+    for(int i = object.size()-1; i>=0; i--){
+      object.get(i).update(keys);
     }
   }
   //Draws each object in the list
     public void draw(java.awt.Graphics g){
       
-        for (GameObject obj : object) {
-        obj.draw(g);
-    }
+        for(int i = object.size()-1; i>=0; i--){
+        object.get(i).draw(g);
+        }
     }
 
 
@@ -32,6 +32,7 @@ public class Handler {
     public void removeObject(GameObject remObject){
         this.object.remove(remObject);
     }
+
 
         public boolean isUp() {
       return up;

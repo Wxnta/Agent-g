@@ -1,11 +1,13 @@
 import java.awt.*;
 import java.awt.event.KeyEvent;
+import javax.swing.ImageIcon;
 
 public class Player extends GameObject{
 
  private int speed = 5;
- private  int width = 50, height = 50;
+ private  int width = 50, height = 56;
  int mouseX, mouseY;
+private Image playerImg = new ImageIcon("Assets/characters/example.png").getImage(); 
 
     
  Handler handler;
@@ -40,6 +42,21 @@ public class Player extends GameObject{
     if(checkWallCollision()){
         y -= vy;
     }
+
+  
+
+    
+ }
+
+  public void shoot(int mx, int my, Player player, Camera camera){
+  int wmx = mx + camera.getX();
+  int wmy = my + camera.getY();
+
+  System.out.println(wmx +", "+wmy);
+  int px = (int)player.getX() + player.getWidth()/2;
+  int py = (int)player.getY() + player.getHeight()/2;
+
+  handler.addObject(new Bullets(px,py,wmx,wmy,ID.Bullet, handler));
  }
 
  public  int getWidth() {
@@ -69,8 +86,7 @@ public class Player extends GameObject{
  
  public void draw(Graphics g) {
 
-    g.setColor(Color.BLUE);
-    g.fillRect((int)x,(int) y, width, height);
+    g.drawImage(playerImg,(int)x,(int)y, null);
 
 
 }
