@@ -5,5 +5,5 @@ public enum ID{
   Enemy(),
   Block(),
   Bullet(),
-  PowerUp();
+  PowerUp(),
 }

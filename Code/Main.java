@@ -10,14 +10,18 @@
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
-
+import javax.swing.ImageIcon;
 class Main extends BaseFrame{
 
 public static final int WIDTH = 1200, HEIGHT = 800;
- private Handler handler;
- private Player player;
- private Camera camera;
- private  BufferedImage lvl;
+ private Handler handler; //handles gameObject actions
+ private Player player; //our player
+ private Camera camera; //Our world camera
+ private  BufferedImage lvl; //Current lvl image
+ private int frameCount = 0; 
+ private int gunDelay = 0; //Time between shots
+ private boolean canShoot = true; //Lets us know if player can shoot
+ private Image floorImg = (new ImageIcon("Assets/background/tiny.png")).getImage();
  
  public Main(){
   
@@ -26,34 +30,74 @@ public static final int WIDTH = 1200, HEIGHT = 800;
   player = new Player(0, 0, ID.Player, handler);
   handler.addObject(player);
   
+  gunDelay = player.getGunDelay();
+  
   
   BufferedImageLoader loader = new BufferedImageLoader();
+  
   lvl = loader.loadBuffImg("Assets/LvlImages/lvl1Image.png");
   camera = new Camera(0,0,lvl);
   
-
+  //Loads the level
   loadLevel(lvl);
  } 
  
 @Override
  public void update(){
+ //Makes sure the camera is always there
   if(camera == null) return;
+  frameCount++;
+  //Handles all game objects update
   handler.update(keys);
   
+  //Camera follows player
   camera.update(player);
 
-  if(mb == MouseEvent.BUTTON1){
-    player.shoot(mx,my, player, camera);
-    mb = 0;
-  } 
+  player.setAngle(getAngle());
+
+  // PLAYER SHOOTING LOGIC
+  //Let player schoots between cooldown
+  if(frameCount % gunDelay == 0 && canShoot == false && player.getAmmoCount() !=0){
+        canShoot = true;
+         
+  }
+  if(canShoot){
+      if(mb == MouseEvent.BUTTON1){
+       
+        player.shoot(mx,my, player, camera);
+      
+      mb = 0;
+      frameCount = 1;
+      player.setAmmoCount(player.getAmmoCount() -1);
+      canShoot = false;
+  }
+  }
  }
 
+  private double getAngle(){
+  int wmx = mx + camera.getX(); // should we make these global variables
+  int wmy = my + camera.getY();
+ 
+  int px = (int)player.getX() + player.getWidth()/2;
+  int py = (int)player.getY() + player.getHeight()/2;
+ 
+  double radians = Math.atan2(wmy-py, wmx-px);
+ 
+ 
+    // System.out.println(radians);
+  //   double degrees = Math.toDegrees(radians);
+  return radians;
+  }
+ 
+ 
 
- //Load level
+
+ //Loads level
  private void loadLevel(BufferedImage image){
   int w = image.getWidth();
   int h = image.getHeight();
 
+  //Gets evey position in map, checks color and places objects depending of color of location
   for(int xx = 0; xx < w; xx++){
    for(int yy = 0; yy < h; yy++){
     // int pixel = image.getRGB(xx, yy);
@@ -76,6 +120,8 @@ public static final int WIDTH = 1200, HEIGHT = 800;
     if (c.getGreen() == 255) {
         handler.addObject(new Enemy(xx * 32, yy * 32, ID.Enemy, handler));
     }
+
+    
    }
   }
  }
@@ -84,10 +130,15 @@ public static final int WIDTH = 1200, HEIGHT = 800;
  @Override
  public void draw(Graphics g){
  if (camera==null)return;
-  Graphics2D g2D = (Graphics2D) g;
-  //everything sandwiched between translate will move with camera
-  g2D.translate(-camera.getX(), -camera.getY());
-
+    Graphics2D g2D = (Graphics2D) g;
+    //everything sandwiched between translate will move with camera
+    g2D.translate(-camera.getX(), -camera.getY());
+    for(int xx = 0; xx < lvl.getWidth()*64; xx+=64){
+      for(int yy = 0; yy < lvl.getHeight()*64; yy+=64){
+        g.drawImage(floorImg, xx, yy, null);
+      }
+    }
+  //Draws all gameObject
   handler.draw(g);
   g2D.translate(camera.getX(), camera.getY());
  }

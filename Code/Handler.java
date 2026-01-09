@@ -11,14 +11,14 @@ public class Handler {
     //Updates each object in the list
     public void update(boolean[] keys) {
       
-    for(int i = object.size()-1; i>=0; i--){
-      object.get(i).update(keys);
-    }
+    for(int i = 0; i < object.size(); i++){
+    object.get(i).update(keys);
+}
   }
   //Draws each object in the list
     public void draw(java.awt.Graphics g){
       
-        for(int i = object.size()-1; i>=0; i--){
+        for(int i = 0; i < object.size(); i++){
         object.get(i).draw(g);
         }
     }
