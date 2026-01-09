@@ -6,6 +6,9 @@ public class Player extends GameObject{
 
  private int speed = 5;
  private  int width = 50, height = 56;
+ private double angle = 0;
+ private int gunDelay = 20;
+ private int ammoCount = 125;
  int mouseX, mouseY;
 private Image playerImg = new ImageIcon("Assets/characters/example.png").getImage(); 
 
