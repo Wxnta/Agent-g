@@ -18,7 +18,7 @@ public abstract class GameObject {
 
   public abstract Rectangle getRect();
 
-  public void update(boolean []keys){
+  public void update(){
     
   }
 

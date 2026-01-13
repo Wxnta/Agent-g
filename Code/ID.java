@@ -6,5 +6,6 @@ public enum ID{
   Block(),
   Bullet(),
   PowerUp(),
-  Crate();
+  Crate(),
+  Explosion();
 }

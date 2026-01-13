@@ -14,7 +14,8 @@ public class Crate extends GameObject{
     private int width = 64, height = 64;
     private HashTable<Crate> crateTable = new HashTable<Crate>();
     // private String[] powerUP = {"Dash","Speed Boost","Increase Damage","Increase Fire Rate"};
-    private String[] powerUP = {"Dash", "SuperSpeed", "HeavyHit"};
+    private String[] powerUP = {"Dash", "SuperSpeed", "Wall"};
+    private String[] guns = {"RPG"};
       
 
 
@@ -25,7 +26,7 @@ public class Crate extends GameObject{
 
     }
 
-    public void update(boolean[] keys) {
+    public void update() {
 
     }
 
@@ -39,11 +40,11 @@ public class Crate extends GameObject{
         }
         else{
                                     //Use get maxHealth if making health cap biggert
-            if(player.getHealth() <= player.getHealth() - healthInCrate){
+            if(player.getHealth() <= player.getMaxHealth() - healthInCrate){
              player.setHealth(player.getHealth() + healthInCrate);
             }
             else{
-              player.setHealth(player.getHealth() + (100 - player.getHealth()));
+              player.setHealth(player.getHealth() + (player.getMaxHealth() - player.getHealth()));
             }
         }
         
@@ -83,12 +84,7 @@ public void draw(Graphics g){
     return ((int)x * 1000 + (int)y);
   }
   
-  public int getCrateX(){
-    return (int)x;
-}
-public int getCrateY(){
-    return (int)y;
-}
+
 }
 
 

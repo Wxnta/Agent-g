@@ -8,11 +8,19 @@ public class Bullets extends GameObject{
   private double  speed = 10;
   Handler handler;
   private int damage = 20; //How much damage our bullets
+  Player player;
+
+  //For RPG
+  private boolean isExploded = false; //checks if bullets hits a wall, for it to stay there
+  
+  private Explosion explosion;
+
+  
 
   private Image bulletImg = new ImageIcon("Assets/weapons/shoot/9.png").getImage(); 
   
   //Bullets Constructor class
-  public Bullets(int x, int y,int targetX, int targetY, ID id, Handler handler){
+  public Bullets(int x, int y,int targetX, int targetY, ID id, Handler handler, Player player){
     super(x, y, id);
     //Calculate distance to Mouse Target
     double dx = targetX-x;
@@ -22,6 +30,7 @@ public class Bullets extends GameObject{
     vx = (dx/hyp) * speed ;
     vy = (dy/hyp)  * speed;
     this.handler = handler;
+    this.player = player;
   }
   //Gets bullet hitbox
   @Override
@@ -31,12 +40,23 @@ public class Bullets extends GameObject{
 
   //Handles the movement, deletes it if it hits a wall or enemies
   @Override
-  public void update(boolean[] keys) {
+  public void update() {
       move();
     
-
+      
       if(checkWallCollision()){
+         
+        if(player.getGuns().contains("RPG")){
+          
+         explosion = new Explosion ((int)x-100,(int)y-100,id.Explosion, handler);
+         handler.addObject(explosion);
+          
+         
+      }
         handler.removeObject(this);
+        
+         
+        
       }
       
       //Damage enemy
@@ -55,7 +75,7 @@ public class Bullets extends GameObject{
   // Gets damage, the bullets does
   public int getDamage() {
     return damage;
-  }
+  }       
 
   // Sets the damage, the bullets does
   public void setDamage(int damage) {
@@ -64,14 +84,24 @@ public class Bullets extends GameObject{
 
   // Handle bullets movement
   public void move() {
+    if(!isExploded){
      x += vx;
      y += vy;
+    }
+    else{
+      x += 0;
+     y += 0;
+    }
   }
+
+
 
   //Draws the bullets on screen
   @Override
   public void draw(Graphics g) {
+   
     g.drawImage(bulletImg,(int)x,(int)y, null);
+
   }
 
   //Check for the wall collision

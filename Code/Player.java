@@ -17,11 +17,13 @@ private int frameCount = 0;
  private int gunDelay = 20;
  private int ammoCount = 25;
  private int health = 100;
+ private int maxHealth = 100;
  private int dashDamage = 50;
  private int superSpeedTime = 0;
  private boolean canDash= true;
 // private int mouseX, mouseY;
  private ArrayList<String> powerups = new ArrayList<String>();
+ private ArrayList<String> guns = new ArrayList<String>();
  
  
  //int mouseX, mouseY;
@@ -46,6 +48,8 @@ private int frameCount = 0;
 
     vx = 0;
     vy = 0;
+
+    
     
     if(!powerups.contains("SuperSpeed")){
 
@@ -60,7 +64,7 @@ private int frameCount = 0;
         if(superSpeedTime % 250 == 0){
             powerups.remove("SuperSpeed");
         }
-        System.err.println("I can speed");
+       // System.err.println("I can speed");
         if (keys[KeyEvent.VK_W]) vy = -superSpeed;
         if (keys[KeyEvent.VK_S]) vy =  superSpeed;
         if (keys[KeyEvent.VK_A]) vx = -superSpeed;
@@ -137,13 +141,25 @@ private int frameCount = 0;
   
   //Logic for PLayer SHooting
   public void shoot(int mx, int my, Player player, Camera camera){
+ 
   int wmx = mx + camera.getX();
   int wmy = my + camera.getY();
 
-  int px = (int)player.getX() + player.getWidth()/2;
-  int py = (int)player.getY() + player.getHeight()/2;
+  int px = (int)(player.getX() + player.getWidth()/2) ;
+  int py = (int)(player.getY() + player.getHeight()/2);
+    // Spawn bullet a little in front of the player so SuperSpeed doesn't overlap it
+    double dx = wmx - px;
+    double dy = wmy - py;
+    double hyp = Math.sqrt(dx*dx + dy*dy);
+    int spawnX = px;
+    int spawnY = py;
+    if(hyp != 0){
+        double offset = player.getWidth() / 2.0 + 8; // place bullet just outside player's bounds
+        spawnX = (int)(px + (dx / hyp) * offset);
+        spawnY = (int)(py + (dy / hyp) * offset);
+    }
 
-  handler.addObject(new Bullets(px,py,wmx,wmy,ID.Bullet, handler));
+    handler.addObject(new Bullets(spawnX, spawnY, wmx, wmy, ID.Bullet, handler, player));
  }
 
 
@@ -252,5 +268,21 @@ public int getHealth() {
 
 public void setHealth(int health) {
     this.health = health;
+}
+
+public int getMaxHealth() {
+    return maxHealth;
+}
+
+public void setMaxHealth(int maxHealth) {
+    this.maxHealth = maxHealth;
+}
+
+public ArrayList<String> getGuns() {
+    return guns;
+}
+
+public void addGuns(String gun) {
+    guns.add(gun);
 }
 }

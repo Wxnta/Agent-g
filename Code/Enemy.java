@@ -32,7 +32,7 @@ public class Enemy extends GameObject{
   }
 
   //updates movement and if it exists
-  public void update(boolean[] keys){
+  public void update(){
     frameCount ++;
 
     Player player = checkPlayerCollision();

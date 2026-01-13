@@ -19,7 +19,10 @@ public static final int WIDTH = 1200, HEIGHT = 800;
  private Player player; //our player
  private Camera camera; //Our world camera
  private  BufferedImage lvl; //Current lvl image
- private int frameCount = 0; 
+ private int frameCount = 0;
+ private int min = 0;
+ String timeString;
+ private int shootFrameCount = 0; 
  private int gunDelay = 0; //Time between shots
  private boolean canShoot = true; //Lets us know if player can shoot
  private Image floorImg = (new ImageIcon("Assets/background/floor.png")).getImage();
@@ -38,6 +41,8 @@ public static final int WIDTH = 1200, HEIGHT = 800;
   gunDelay = player.getGunDelay();
   player.addPowerup("Dash");
   player.addPowerup("SuperSpeed");
+  player.addGuns("RPG");
+  
   
   
   
@@ -62,9 +67,11 @@ public static final int WIDTH = 1200, HEIGHT = 800;
  
 @Override
  public void update(){
+  
  //Makes sure the camera is always there
   if(camera == null) return;
   frameCount++;
+  shootFrameCount++;
   //Handles all game objects update
   handler.update(keys);
   
@@ -72,12 +79,13 @@ public static final int WIDTH = 1200, HEIGHT = 800;
   camera.update(player);
 
   player.update(keys, camera, mx, my);
+  
 
   player.setAngle(getAngle());
 
   // PLAYER SHOOTING LOGIC
   //Let player schoots between cooldown
-  if(frameCount % gunDelay == 0 && canShoot == false && player.getAmmoCount() !=0){
+  if(shootFrameCount % gunDelay == 0 && canShoot == false && player.getAmmoCount() !=0){
         canShoot = true;
          
   }
@@ -93,7 +101,7 @@ public static final int WIDTH = 1200, HEIGHT = 800;
   }
   }
 
-  if(frameCount % crateRespawnTime == 0){
+  if(shootFrameCount % crateRespawnTime == 0){
       spawnCrate(lvl);  
          
   }
@@ -217,12 +225,36 @@ public static final int WIDTH = 1200, HEIGHT = 800;
   g.setFont(fnt50);
   g.setColor(Color.RED);
   g.drawString("Ammo: " + player.getAmmoCount(), 50 + camera.getX(), 50 + camera.getY());
+  int seconds = frameCount/50;
+  
+  if(seconds == 60){
+    System.err.println("AGAGAG");
+    min += 1;
+    seconds = 0;
+    frameCount = 0;
+  }
+  
+  if(min == 0 && seconds < 10){
+     timeString = String.format("00:0%d", seconds);
+  }
+  else if(min == 0 && seconds >= 10){
+    timeString = String.format("00:%d", seconds);
+  }
+  else if(min <= 10 && seconds <= 10){
+      timeString = String.format("%d:0%d", min, seconds);
+  }
+  else if(min <= 10 && seconds >= 10){
+      timeString = String.format("%d:%d", min, seconds);
+  }
+  
+  
+  g.drawString(timeString, 550 + camera.getX(), 50 + camera.getY());
 
   //Draw Health Bar
   g.setColor(Color.BLACK);
-  g.fillRect(890 + camera.getX(), 40 + camera.getY(), 220, 50);
+  g.fillRect(890 + camera.getX(), 10 + camera.getY(), 220, 50);
   g.setColor(Color.GREEN);
-  g.fillRect(900 + camera.getX(), 50 + camera.getY(), player.getHealth() * 2, 30);
+  g.fillRect(900 + camera.getX(), 20 + camera.getY(), player.getHealth() * 2, 30);
   
   g2D.translate(camera.getX(), camera.getY());
   
