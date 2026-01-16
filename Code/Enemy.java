@@ -17,7 +17,8 @@ public class Enemy extends GameObject{
   private int health = 100;
   private int damage = 10;
   private int frameCount = 0;
-  private int playerGraceTime = 100; // frames of invincibility after hitting player
+  private int playerGraceTime = 100; //2 seconds frames of invincibility after hitting player
+  private int wave;
   public boolean canDamage = true;
   private Player player;
   private BufferedImageLoader loader = new BufferedImageLoader(); 
@@ -25,10 +26,11 @@ public class Enemy extends GameObject{
 
   Handler handler;
   //Constructer for enemy
-  public Enemy(int x, int y, ID id, Handler handler, Player player){
+  public Enemy(int x, int y, ID id, Handler handler, Player player, int wave){
     super(x, y, id);
     this.handler = handler;
     this.player = player;
+    this.wave = wave;
   }
 
   //updates movement and if it exists
@@ -36,11 +38,10 @@ public class Enemy extends GameObject{
     frameCount ++;
 
     Player player = checkPlayerCollision();
-    if(health<=0){
-      handler.removeObject(this);
-    }
+
 
     move();
+   // System.err.println("Enemy SPeed is: " + speed);
 
     if(frameCount % playerGraceTime == 0 && canDamage == false){
         canDamage = true;
@@ -70,7 +71,8 @@ public class Enemy extends GameObject{
   double dx = px-x;
   double dy = py-y;
   double dist = Math.sqrt(dx*dx+dy*dy);
-  speed = 2;
+
+  speed = Math.min(wave + 1, 5);
   double vx = dx/dist * speed;
   double vy = dy/dist * speed;
 
@@ -179,6 +181,8 @@ private Player checkPlayerCollision(){
   //   double degrees = Math.toDegrees(radians);
   return radians;
   }
+
+  
 
   
 

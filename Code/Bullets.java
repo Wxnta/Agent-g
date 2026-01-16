@@ -50,6 +50,8 @@ public class Bullets extends GameObject{
           
          explosion = new Explosion ((int)x-100,(int)y-100,id.Explosion, handler);
          handler.addObject(explosion);
+         
+         player.setRpgAmmo(player.getRpgAmmo() - 1);
           
          
       }

@@ -11,6 +11,7 @@ import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.util.ArrayList;
 import javax.swing.ImageIcon;
 class Main extends BaseFrame{
 
@@ -21,43 +22,77 @@ public static final int WIDTH = 1200, HEIGHT = 800;
  private  BufferedImage lvl; //Current lvl image
  private int frameCount = 0;
  private int min = 0;
+ private int seconds = 0;
  String timeString;
  private int shootFrameCount = 0; 
  private int gunDelay = 0; //Time between shots
  private boolean canShoot = true; //Lets us know if player can shoot
+ private BufferedImageLoader loader = new BufferedImageLoader();
  private Image floorImg = (new ImageIcon("Assets/background/floor.png")).getImage();
  private Font fnt50;
+ private Font fnt100;
+ private Font fnt20;
  private int crateRespawnTime = 300; 
  private int money = 0;
  private HashTable<Crate> crateTable = new HashTable<Crate>();
+ private ArrayList<Enemy> enemyList = new ArrayList<Enemy>();
+ private int wave = 1;
+ private boolean nextWave = false;
+
+ private boolean waveTxtOn = true;
+ private int waveTxtTImer;
+
+ private int crateCount = 0;
+
  
  public Main(){
   
   super("Main", WIDTH, HEIGHT);
   handler = new Handler();
-  player = new Player(0, 0, ID.Player, handler);
+  player = new Player(100, 100, ID.Player, handler);
   handler.addObject(player);
   
   gunDelay = player.getGunDelay();
-  player.addPowerup("Dash");
-  player.addPowerup("SuperSpeed");
-  player.addGuns("RPG");
+  // player.addPowerup("Dash");
+  // player.addPowerup("SuperSpeed");
+  // player.addGuns("RPG");
   
   
   
   
-  BufferedImageLoader loader = new BufferedImageLoader();
+  
   
 
-  
-  lvl = loader.loadBuffImg("Assets/LvlImages/lvl1Image.png");
+   if(wave == 1){
+    lvl = loader.loadBuffImg("Assets/LvlImages/lvl1Image.png");
+   }
+
   try {
       fnt50 = Font.createFont(Font.TRUETYPE_FONT, new File("Assets/fonts/gameFont.otf")).deriveFont(50f);
       GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
       ge.registerFont(fnt50);
     } catch (Exception e) {
       e.printStackTrace();
-      fnt50 = new Font("Monospaced", Font.PLAIN, 40);
+      fnt50 = new Font("Monospaced", Font.PLAIN, 50);
+    }
+
+    try {
+      fnt100 = Font.createFont(Font.TRUETYPE_FONT, new File("Assets/fonts/gameFont.otf")).deriveFont(100f);
+      GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+      ge.registerFont(fnt100);
+    } catch (Exception e) {
+      e.printStackTrace();
+      fnt50 = new Font("Monospaced", Font.PLAIN, 100);
+    }
+
+    try {
+      fnt20 = Font.createFont(Font.TRUETYPE_FONT, new File("Assets/fonts/gameFont.otf")).deriveFont(20f);
+      GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+      ge.registerFont(fnt20
+      );
+    } catch (Exception e) {
+      e.printStackTrace();
+      fnt50 = new Font("Monospaced", Font.PLAIN, 20);
     }
   camera = new Camera(0,0,lvl);
   
@@ -67,7 +102,7 @@ public static final int WIDTH = 1200, HEIGHT = 800;
  
 @Override
  public void update(){
-  
+  long before = System.nanoTime();
  //Makes sure the camera is always there
   if(camera == null) return;
   frameCount++;
@@ -109,9 +144,36 @@ public static final int WIDTH = 1200, HEIGHT = 800;
   if(player.checkCrateCollision() != null){
       Crate crate = player.checkCrateCollision();
       crate.giveLoot();
+      crateCount -=1;
       crateTable.remove(crate);
       
   }
+  if(enemyList != null){
+  for(int i = 0; i < enemyList.size(); i++){
+    if(enemyList.get(i).getHealth() <=0  ){
+      handler.removeObject(enemyList.get(i));
+      enemyList.remove(enemyList.get(i));
+    }
+  }
+}
+
+  if(enemyList.isEmpty()){
+    nextWave = true;
+    
+  }
+  if(nextWave){
+    min = 0;
+    seconds = 0;
+    frameCount = 0;
+    waveTxtOn = true;
+    wave += 1;
+    System.err.println("Wave: " + wave);
+    lvl = loader.loadBuffImg("Assets/LvlImages/lvl1Image - Copy.png");
+    spawnZombie(lvl);
+    nextWave = false;
+  }
+  long after = System.nanoTime();
+  //System.out.println(after-before);
  }
 
   //Returns the angle between player and mouse
@@ -151,19 +213,28 @@ public static final int WIDTH = 1200, HEIGHT = 800;
         handler.addObject(new Block(xx * 32, yy * 32, ID.Block));
     }
 
-    if (c.getBlue() == 255 && c.getRed() == 0 && c.getGreen() == 0) {
-        player.setX(xx * 32);
-        player.setY(yy * 32);
-    }
-
+    if(wave == 1){
+      if (c.getBlue() == 255 && c.getRed() == 0 && c.getGreen() == 0) {
+          player.setX(xx * 32);
+          player.setY(yy * 32);
+      }
+  }
+    if(wave ==1 ){
     if (c.getGreen() == 255 && c.getRed() == 0 && c.getBlue() == 0) {
-        handler.addObject(new Enemy(xx * 32, yy * 32, ID.Enemy, handler, player));
+       
+        Enemy enemy = new Enemy(xx * 32, yy * 32, ID.Enemy, handler, player, wave);
+        enemyList.add(enemy);
+        handler.addObject(enemy);
+        
     }
+  }
 
-    if (c.getRed() == 0 && c.getGreen() == 255 && c.getBlue() == 255 && Util.randint(0, 2) == 0) {
+    if (c.getRed() == 0 && c.getGreen() == 255 && c.getBlue() == 255 && Util.randint(0, 3) == 0) {
    // System.err.println("Adding Crate at ("+xx*32+","+yy*32+")");
-    
-        handler.addObject(new Crate(xx * 32, yy * 32, ID.Crate, handler, player));
+        Crate baseCrate = new Crate(xx * 32, yy * 32, ID.Crate, handler, player);
+        crateTable.add(baseCrate);
+        crateCount += 1;
+        handler.addObject(baseCrate);
     }
 
     
@@ -171,6 +242,7 @@ public static final int WIDTH = 1200, HEIGHT = 800;
   }
  }
 
+ //Spawn Crates around the map
  private void spawnCrate(BufferedImage image){
     int w = image.getWidth();
     int h = image.getHeight();
@@ -181,16 +253,19 @@ public static final int WIDTH = 1200, HEIGHT = 800;
     //Reads the RGB value on each position from the image
     Color c = new Color(image.getRGB(xx, yy), true);
 
-    if (c.getRed() == 0 && c.getGreen() == 255 && c.getBlue() == 255 && Util.randint(0, 2) == 0) {
+    if (c.getRed() == 0 && c.getGreen() == 255 && c.getBlue() == 255 && Util.randint(0, 3) == 0) {
     //System.err.println("Adding Crate at ("+xx*32+","+yy*32+")");
-    if(handler.getCrateCount() < 5){
+    if(crateCount < 5){
       Crate baseCrate = new Crate(xx * 32, yy * 32, ID.Crate, handler, player);
         if(crateTable.samePos(baseCrate.hashCode()) != null){
           //System.err.println(" Crate Stacked at ("+xx*32+","+yy*32+")");
           return;
         } else {
+          
           crateTable.add(baseCrate);
-         // System.err.println(crateTable);
+          
+          crateCount += 1;
+          //System.err.println(crateCount);
           handler.addObject(baseCrate);
         }
     }
@@ -200,6 +275,31 @@ public static final int WIDTH = 1200, HEIGHT = 800;
    }
   }
  }
+
+ private void spawnZombie(BufferedImage image){
+  int w = image.getWidth();
+    int h = image.getHeight();
+
+    for(int xx = 0; xx < w; xx++){
+      for(int yy = 0; yy < h; yy++){
+   
+
+    //Reads the RGB value on each position from the image
+        Color c = new Color(image.getRGB(xx, yy), true);
+      if (c.getGreen() == 255 && c.getRed() == 0 && c.getBlue() == 0 && enemyList.size() <= (wave*2 + 4) && Util.randint(0, 3) == 0 ) {
+          System.err.println("Adding enemies");
+          Enemy enemy = new Enemy(xx * 32, yy * 32, ID.Enemy, handler, player, wave);
+          enemyList.add(enemy);
+          handler.addObject(enemy);
+          
+      }
+    
+  }
+
+    
+   }
+  }
+ 
 
  //Draws everything in our code
  @Override
@@ -225,7 +325,7 @@ public static final int WIDTH = 1200, HEIGHT = 800;
   g.setFont(fnt50);
   g.setColor(Color.RED);
   g.drawString("Ammo: " + player.getAmmoCount(), 50 + camera.getX(), 50 + camera.getY());
-  int seconds = frameCount/50;
+   seconds = frameCount/50;
   
   if(seconds == 60){
     System.err.println("AGAGAG");
@@ -250,11 +350,31 @@ public static final int WIDTH = 1200, HEIGHT = 800;
   
   g.drawString(timeString, 550 + camera.getX(), 50 + camera.getY());
 
+  if(waveTxtOn){
+    g.setFont(fnt100);
+    g.setColor(Color.GREEN);
+    g.drawString("Wave " + wave, WIDTH/2 + camera.getX() - 130, 150+ camera.getY());
+    
+    if(seconds == 3){
+      waveTxtOn = false;
+    }
+  }
+
+
   //Draw Health Bar
   g.setColor(Color.BLACK);
   g.fillRect(890 + camera.getX(), 10 + camera.getY(), 220, 50);
   g.setColor(Color.GREEN);
   g.fillRect(900 + camera.getX(), 20 + camera.getY(), player.getHealth() * 2, 30);
+
+
+   g.setColor(Color.CYAN);
+   g.setFont(fnt20);
+   
+   g.drawString("RPG Bullets: "+ player.getRpgAmmo() +"/3", camera.getX() + 10, camera.getY() + HEIGHT - 70);
+   g.drawString("SuperSpeed: " + player.getPowerups().contains("SuperSpeed"), camera.getX() + 10, camera.getY() + HEIGHT - 40);
+   g.drawString("Dash: "+ player.getCanDash(player.getPowerups()), camera.getX() + 10, camera.getY() + HEIGHT - 10);
+   
   
   g2D.translate(camera.getX(), camera.getY());
   

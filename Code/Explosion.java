@@ -19,7 +19,7 @@ public class Explosion extends GameObject{
    if(explosionTimer == 75){
     handler.removeObject(this);
    }
-   System.err.println(explosionTimer);
+ //  System.err.println(explosionTimer);
       Enemy enemy = checkEnemyCollision();
       
       if(enemy != null){

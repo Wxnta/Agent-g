@@ -21,6 +21,8 @@ private int frameCount = 0;
  private int dashDamage = 50;
  private int superSpeedTime = 0;
  private boolean canDash= true;
+ private boolean  canSuperSpeed;
+ private int rpgAmmo;
 // private int mouseX, mouseY;
  private ArrayList<String> powerups = new ArrayList<String>();
  private ArrayList<String> guns = new ArrayList<String>();
@@ -51,24 +53,27 @@ private int frameCount = 0;
 
     
     
-    if(!powerups.contains("SuperSpeed")){
-
-        if (keys[KeyEvent.VK_W]) vy = -speed;
-        if (keys[KeyEvent.VK_S]) vy =  speed;
-        if (keys[KeyEvent.VK_A]) vx = -speed;
-        if (keys[KeyEvent.VK_D]) vx =  speed;
-        
-    }
-    else{
+   //FIX SUPERSPEED SO ITS TRUE ON CLICK AND COUNTS DOWN ON CLICK
+    if(powerups.contains("SuperSpeed") && keys[KeyEvent.VK_CONTROL]){
         superSpeedTime ++;
+        canSuperSpeed = true;
         if(superSpeedTime % 250 == 0){
             powerups.remove("SuperSpeed");
+            canSuperSpeed = false;
         }
        // System.err.println("I can speed");
         if (keys[KeyEvent.VK_W]) vy = -superSpeed;
         if (keys[KeyEvent.VK_S]) vy =  superSpeed;
         if (keys[KeyEvent.VK_A]) vx = -superSpeed;
         if (keys[KeyEvent.VK_D]) vx =  superSpeed;
+    }
+     else{
+
+        if (keys[KeyEvent.VK_W]) vy = -speed;
+        if (keys[KeyEvent.VK_S]) vy =  speed;
+        if (keys[KeyEvent.VK_A]) vx = -speed;
+        if (keys[KeyEvent.VK_D]) vx =  speed;
+        
     }
     move(keys);
 
@@ -81,6 +86,10 @@ private int frameCount = 0;
         dash(camera, mouseX, mouseY);
         canDash = false;
         frameCount = 0;
+    }
+
+    if(rpgAmmo == 0 && guns.contains("RPG")){
+        guns.remove("RPG");
     }
 
     
@@ -285,4 +294,33 @@ public ArrayList<String> getGuns() {
 public void addGuns(String gun) {
     guns.add(gun);
 }
+
+    public int getRpgAmmo() {
+        return rpgAmmo;
+    }
+
+    public void setRpgAmmo(int rpgAmmo) {
+        this.rpgAmmo = rpgAmmo;
+    }
+
+    public ArrayList<String> getPowerups() {
+        return powerups;
+    }
+
+    public void setPowerups(ArrayList<String> powerups) {
+        this.powerups = powerups;
+    }
+
+    public boolean getCanDash(ArrayList powerups) {
+        if(powerups.contains("Dash")) {
+            return true;
+        }
+        return false;
+    }
+
+    public boolean isCanSuperSpeed() {
+        return canSuperSpeed;
+    }
+
+
 }

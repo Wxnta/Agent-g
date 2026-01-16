@@ -79,4 +79,11 @@ public class Handler {
     public void setRight(boolean right) {
       this.right = right;
     }
+
+  //   public int amtObject(GameObject type){
+  //   for(int i = 0; i < object.size(); i++){
+
+  //   }
+  // }
 }
+
