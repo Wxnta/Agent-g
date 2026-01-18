@@ -10,7 +10,8 @@
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
-
+import java.io.File;
+import javax.swing.ImageIcon;
 class Main extends BaseFrame{
 
 public static final int WIDTH = 1200, HEIGHT = 800;
@@ -21,19 +22,38 @@ public static final int WIDTH = 1200, HEIGHT = 800;
  private int frameCount = 0; 
  private int gunDelay = 0; //Time between shots
  private boolean canShoot = true; //Lets us know if player can shoot
+ private Image floorImg = (new ImageIcon("Assets/background/floor.png")).getImage();
+ private Font fnt50;
+ private int crateRespawnTime = 300, crateCount = 0; 
+ private int money = 0;
+ private HashTable<Crate> crateTable = new HashTable<Crate>();
  
  public Main(){
   
   super("Main", WIDTH, HEIGHT);
   handler = new Handler();
-  player = new Player(0, 0, ID.Player, handler);
+  player = new Player(100, 100, ID.Player, handler);
   handler.addObject(player);
   
   gunDelay = player.getGunDelay();
+  player.addPowerup("Dash");
+  player.addPowerup("SuperSpeed");
+  
   
   
   BufferedImageLoader loader = new BufferedImageLoader();
+  
+
+  
   lvl = loader.loadBuffImg("Assets/LvlImages/lvl1Image.png");
+  try {
+      fnt50 = Font.createFont(Font.TRUETYPE_FONT, new File("Assets/fonts/gameFont.otf")).deriveFont(50f);
+      GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+      ge.registerFont(fnt50);
+    } catch (Exception e) {
+      e.printStackTrace();
+      fnt50 = new Font("Monospaced", Font.PLAIN, 40);
+    }
   camera = new Camera(0,0,lvl);
   
   //Loads the level
@@ -42,6 +62,7 @@ public static final int WIDTH = 1200, HEIGHT = 800;
  
 @Override
  public void update(){
+  long before = System.nanoTime();
  //Makes sure the camera is always there
   if(camera == null) return;
   frameCount++;
@@ -51,11 +72,15 @@ public static final int WIDTH = 1200, HEIGHT = 800;
   //Camera follows player
   camera.update(player);
 
+  player.update(keys, camera, mx, my);
+
+  
+
   player.setAngle(getAngle());
 
   // PLAYER SHOOTING LOGIC
   //Let player schoots between cooldown
-  if(frameCount % gunDelay == 0 && canShoot == false){
+  if(frameCount % gunDelay == 0 && canShoot == false && player.getAmmoCount() !=0){
         canShoot = true;
          
   }
@@ -65,13 +90,26 @@ public static final int WIDTH = 1200, HEIGHT = 800;
         player.shoot(mx,my, player, camera);
       
       mb = 0;
-      frameCount = 1;
       
+      player.setAmmoCount(player.getAmmoCount() -1);
       canShoot = false;
   }
   }
+
+  if(frameCount % crateRespawnTime == 0){
+      spawnCrate(lvl);  
+         
+  }
+
+  if(player.checkCrateCollision() != null){
+      Crate crate = player.checkCrateCollision();
+      crate.giveLoot();
+      crateTable.remove(crate);
+      
+  }
  }
 
+  //Returns the angle between player and mouse
   private double getAngle(){
   int wmx = mx + camera.getX(); // should we make these global variables
   int wmy = my + camera.getY();
@@ -98,46 +136,118 @@ public static final int WIDTH = 1200, HEIGHT = 800;
   //Gets evey position in map, checks color and places objects depending of color of location
   for(int xx = 0; xx < w; xx++){
    for(int yy = 0; yy < h; yy++){
-    // int pixel = image.getRGB(xx, yy);
-    // int red = (pixel >> 16) & 0xff;
-    // int green = (pixel >> 8) & 0xff;
-    // int blue = (pixel) & 0xff;
+   
 
     //Reads the RGB value on each position from the image
     Color c = new Color(image.getRGB(xx, yy), true);
     
+    //Adds object to corresponding colours
     if (c.getRed() == 255) {
         handler.addObject(new Block(xx * 32, yy * 32, ID.Block));
     }
 
-    if (c.getBlue() == 255) {
+    if (c.getBlue() == 255 && c.getRed() == 0 && c.getGreen() == 0) {
         player.setX(xx * 32);
         player.setY(yy * 32);
     }
 
-    if (c.getGreen() == 255) {
+    if (c.getGreen() == 255 && c.getRed() == 0 && c.getBlue() == 0) {
         handler.addObject(new Enemy(xx * 32, yy * 32, ID.Enemy, handler, player));
     }
+
+    if (c.getRed() == 0 && c.getGreen() == 255 && c.getBlue() == 255 && Util.randint(0, 3) == 0) {
+   // System.err.println("Adding Crate at ("+xx*32+","+yy*32+")");
+        Crate baseCrate = new Crate(xx * 32, yy * 32, ID.Crate, handler, player);
+        crateTable.add(baseCrate);
+        crateCount += 1;
+        handler.addObject(baseCrate);
+    }
+
+    
    }
   }
  }
 
- 
+ //Spawn Crates around the map
+ private void spawnCrate(BufferedImage image){
+    int w = image.getWidth();
+    int h = image.getHeight();
+    for(int xx = 0; xx < w; xx++){
+    for(int yy = 0; yy < h; yy++){
+   
+
+    //Reads the RGB value on each position from the image
+    Color c = new Color(image.getRGB(xx, yy), true);
+
+    if (c.getRed() == 0 && c.getGreen() == 255 && c.getBlue() == 255 && Util.randint(0, 1) == 0) {
+    //System.err.println("Adding Crate at ("+xx*32+","+yy*32+")");
+    if(crateCount < 5){
+      Crate baseCrate = new Crate(xx * 32, yy * 32, ID.Crate, handler, player);
+        if(crateTable.samePos(baseCrate.hashCode()) != null){
+          //System.err.println(" Crate Stacked at ("+xx*32+","+yy*32+")");
+          return;
+        } else {
+          
+          crateTable.add(baseCrate);
+          
+          crateCount += 1;
+          //System.err.println(crateCount);
+          handler.addObject(baseCrate);
+        }
+    }
+  }
+
+    
+   }
+  }
+ }
+ //Draws everything in our code
  @Override
  public void draw(Graphics g){
  if (camera==null)return;
     Graphics2D g2D = (Graphics2D) g;
     //everything sandwiched between translate will move with camera
     g2D.translate(-camera.getX(), -camera.getY());
-  
+    
+
+    //level tiles
+    for(int xx = 0; xx < lvl.getWidth()*64; xx+=64){
+      for(int yy = 0; yy < lvl.getHeight()*64; yy+=64){
+        
+        g.drawImage(floorImg, xx, yy, null);
+      }
+    }
+    
   //Draws all gameObject
   handler.draw(g);
+
+
+  g.setFont(fnt50);
+  g.setColor(Color.RED);
+  g.drawString("Ammo: " + player.getAmmoCount(), 50 + camera.getX(), 50 + camera.getY());
+
+  //Draw Health Bar
+  g.setColor(Color.BLACK);
+  g.fillRect(890 + camera.getX(), 40 + camera.getY(), 220, 50);
+  g.setColor(Color.GREEN);
+  g.fillRect(900 + camera.getX(), 50 + camera.getY(), player.getHealth() * 2, 30);
+  
   g2D.translate(camera.getX(), camera.getY());
+  
  }
  
+ //Runs our code
  public static void main(String[] args) {
   new Main();
     } 
+
+    public int getMoney() {
+        return money;
+    }
+
+    public void setMoney(int money) {
+        this.money = money;
+    }
 }
 
 
