@@ -189,8 +189,6 @@ public static final int WIDTH = 1200, HEIGHT = 800;
   double radians = Math.atan2(wmy-py, wmx-px);
  
  
-    // System.out.println(radians);
-  //   double degrees = Math.toDegrees(radians);
   return radians;
   }
  
@@ -375,7 +373,7 @@ public static final int WIDTH = 1200, HEIGHT = 800;
 
    if(player.getPowerups().contains("SuperStrength") && player.getSuperStrengthTime() > 0){
     g.setColor(Color.CYAN);
-    g.drawString("SuperStrength: " + ((1000 - player.getSuperStrengthTime())/50) +"s", camera.getX() + 10, camera.getY() + HEIGHT - 100);
+    g.drawString("X2 DAMAGE: " + ((1000 - player.getSuperStrengthTime())/50) +"s", camera.getX() + 10, camera.getY() + HEIGHT - 100);
    }
    else{
     g.setColor(Color.ORANGE);
