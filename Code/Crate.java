@@ -1,28 +1,34 @@
-import java.awt.Graphics;
-import java.awt.Rectangle;
+
 import java.awt.image.BufferedImage;
 import java.util.Arrays;
 import java.util.ArrayList;
+import java.awt.*;
+import javax.swing.ImageIcon;
 
 public class Crate extends GameObject{
 
     private Handler handler;
     BufferedImageLoader loader = new BufferedImageLoader(); 
     private BufferedImage crateImg = loader.loadBuffImg("Assets/item/chest1.png"); 
+    private Image openCrateGIF = new ImageIcon("Assets/item/chestOpen.GIF").getImage();
     private Player player;
     private int ammoInCrate = Util.randint(10,20);
     private int healthInCrate = Util.randint(5,15);
     private int width = 64, height = 64;
     private HashTable<Crate> crateTable = new HashTable<Crate>();
+    private int screenTime = 0;
+    private boolean hitboxDisabled = false;
+    private String lootMsg;
+     private Font fnt20;
     // private String[] powerUP = {"Dash","Speed Boost","Increase Damage","Increase Fire Rate"};
-    private ArrayList<String> powerUP = new ArrayList<>(Arrays.asList("Dash", "SuperSpeed"));
+    private ArrayList<String> powerUP = new ArrayList<>(Arrays.asList("Dash", "SuperSpeed","SuperStrength"));
     private ArrayList<String> guns = new ArrayList<>(Arrays.asList("RPG"));
     private ArrayList<String> refresh = new ArrayList<>(Arrays.asList("HP","Ammo"));
      private ArrayList<String> lootbox = new ArrayList<String>();
       
 
 
-    public Crate(int x, int y, ID id, Handler handler, Player player) {
+    public Crate(int x, int y, ID id, Handler handler, Player player, int wave) {
         super(x, y, id);
         this.handler = handler;
         this.player = player;
@@ -30,14 +36,22 @@ public class Crate extends GameObject{
     }
 
     public void update() {
+        if(hitboxDisabled){
+            screenTime++;
+        }
+        if(screenTime == 20){
+            handler.removeObject(this);
+        }
         
     }
 
     public Rectangle getRect(){
+        if(hitboxDisabled) return null;
         return new Rectangle((int)x, (int)y, width, height);
     }
 
     public void giveLoot(){
+        
         //Removes RPG from lootpool if we already have it
         if(player.getGuns().contains("RPG")){
             guns.remove("RPG");
@@ -58,6 +72,13 @@ public class Crate extends GameObject{
             powerUP.add("SuperSpeed");
         }
 
+        if(player.getPowerups().contains("SuperStrength")){
+            powerUP.remove("SuperStrength");
+        }
+        if(player.getPowerups().contains("SuperStrength") == false && powerUP.contains("SuperStrength")){
+            powerUP.add("SuperStrength");
+        }
+
         if(player.getHealth() == player.getMaxHealth()){
             refresh.remove("HP");
         }
@@ -70,6 +91,7 @@ public class Crate extends GameObject{
         //Guranteed ammo if you don't have none
         if(player.getAmmoCount() == 0){
             player.setAmmoCount(player.getAmmoCount() + ammoInCrate); 
+            lootMsg = "+" + ammoInCrate + " Ammo ";
         }else{
         //1 in 4 chance to get a gun
 
@@ -93,7 +115,8 @@ public class Crate extends GameObject{
         if(lootbox.isEmpty()){
             player.setAmmoCount(player.getAmmoCount() + ammoInCrate);
            // System.err.println("Pitty Ammo");
-            handler.removeObject(this);
+            lootMsg = "+" + ammoInCrate + " Ammo ";
+            
             return;
         }
         
@@ -102,70 +125,52 @@ public class Crate extends GameObject{
             System.err.println("Treasure: " + lootbox.get(randNum));
             if(lootbox.get(randNum).equals("Ammo")){
                 player.setAmmoCount(player.getAmmoCount() + ammoInCrate); 
-                
+                lootMsg = "+" + ammoInCrate + " Ammo ";
             }
             if(lootbox.get(randNum).equals("HP")){
                 if(player.getHealth() <= player.getMaxHealth() - healthInCrate){
+                    lootMsg = "+"  + healthInCrate + " HP";
                     player.setHealth(player.getHealth() + healthInCrate);
                     }
                     else{
+                        lootMsg = "+"  + (player.getMaxHealth() - player.getHealth()) + " HP";
                     player.setHealth(player.getHealth() + (player.getMaxHealth() - player.getHealth()));
                     }
             
             }
             if(lootbox.get(randNum).equals("Dash")){
                 player.addPowerup("Dash");
-                
+                lootMsg = "Dash Acquired";
             }
             if(lootbox.get(randNum).equals("SuperSpeed") ){
                 player.addPowerup("SuperSpeed");
+                lootMsg = "SuperSpeed Acquired";
+                
+            }
+            if(lootbox.get(randNum).equals("SuperStrength") ){
+                player.addPowerup("SuperStrength");
+                lootMsg = "X2 Strength Acquired";
                 
             }
             if(lootbox.get(randNum).equals("RPG")){
                 player.addGuns("RPG");
+                lootMsg = "+3 RPG Bullets";
                 player.setRpgAmmo(3);
                 
             }
-            
-            
-        
-
-
-        // if(Util.randint(0,1) == 0){
-        //     //player.setAmmoCount(player.getAmmoCount() + ammoInCrate);
-        // }
-        // else{
-        //                             //Use get maxHealth if making health cap biggert
-        //     if(player.getHealth() <= player.getMaxHealth() - healthInCrate){
-        //      player.setHealth(player.getHealth() + healthInCrate);
-        //     }
-        //     else{
-        //       player.setHealth(player.getHealth() + (player.getMaxHealth() - player.getHealth()));
-        //     }
-        // }
         }   
         
-        handler.removeObject(this);
-
     }
 
     
 
-    private Player checkPlayerCollision(){
-    for(GameObject obj : handler.object){
-        if(obj.getId() == ID.Player){
-            if(this.getRect().intersects(obj.getRect())){
-                return (Player) obj;
-            }
-        }
-    }
-    return null;
-}
 
 private HashTable<Crate> checkCrateCollision(){
     for(GameObject obj : handler.object){
         if(obj.getId() == ID.Crate && obj != this){
-            if(this.getRect().intersects(obj.getRect())){
+            Rectangle myRect = this.getRect();
+            Rectangle objRect = obj.getRect();
+            if(myRect != null && objRect != null && myRect.intersects(objRect)){
                 return crateTable;
             }
         }
@@ -176,13 +181,30 @@ private HashTable<Crate> checkCrateCollision(){
     @Override
 
 public void draw(Graphics g){
+    if(!hitboxDisabled){
     g.drawImage(crateImg, (int) x, (int) y, null);
+    }
+    else{
+        g.drawImage(openCrateGIF, (int) x, (int) y, null);
+        g.setColor(Color.GREEN);
+        //g.setFont();
+        if(y > 100){
+        g.drawString(lootMsg, (int)x+10, (int)y);
+        }
+        else{
+            g.drawString(lootMsg, (int)x+10, (int)y+70);
+        }
+    }
   }
 
   @Override
   public int hashCode(){
     return ((int)x * 1000 + (int)y);
   }
+
+    public void setHitboxDisabled(boolean hitboxDisabled) {
+        this.hitboxDisabled = hitboxDisabled;
+    }
   
 
 }

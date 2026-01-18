@@ -61,6 +61,19 @@ public class Enemy extends GameObject{
        
     }
 
+    if(wave == 2){
+        damage = 12;
+    }
+    else if(wave == 3){
+        damage = 15;
+    }
+    else if(wave == 4){
+        damage = 17;
+    }
+    else if(wave == 5){
+        damage = 20;
+    }
+
   
     }
 

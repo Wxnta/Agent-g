@@ -10,7 +10,7 @@ import java.util.ArrayList;
 public class Player extends GameObject{
 
 private int frameCount = 0;
- private int speed = 5;
+ private int speed = 6;
  private int superSpeed = speed + 5;
  private  int width = 50, height = 56;
  private double angle = 0;
@@ -20,8 +20,11 @@ private int frameCount = 0;
  private int maxHealth = 100;
  private int dashDamage = 50;
  private int superSpeedTime = 0;
+ private int superStrengthTime = 0;
  private boolean canDash= true;
  private boolean  canSuperSpeed;
+ private boolean canSuperStrength;
+
  private int rpgAmmo;
 // private int mouseX, mouseY;
  private ArrayList<String> powerups = new ArrayList<String>();
@@ -57,9 +60,10 @@ private int frameCount = 0;
     if(powerups.contains("SuperSpeed") && keys[KeyEvent.VK_CONTROL]){
         superSpeedTime ++;
         canSuperSpeed = true;
-        if(superSpeedTime % 250 == 0){
+        if(superSpeedTime >= 250){
             powerups.remove("SuperSpeed");
             canSuperSpeed = false;
+            superSpeedTime = 0;
         }
        // System.err.println("I can speed");
         if (keys[KeyEvent.VK_W]) vy = -superSpeed;
@@ -68,7 +72,6 @@ private int frameCount = 0;
         if (keys[KeyEvent.VK_D]) vx =  superSpeed;
     }
      else{
-
         if (keys[KeyEvent.VK_W]) vy = -speed;
         if (keys[KeyEvent.VK_S]) vy =  speed;
         if (keys[KeyEvent.VK_A]) vx = -speed;
@@ -91,6 +94,17 @@ private int frameCount = 0;
     if(rpgAmmo == 0 && guns.contains("RPG")){
         guns.remove("RPG");
     }
+    
+    if(powerups.contains("SuperStrength")){
+        canSuperStrength = true;
+        superStrengthTime ++;
+        if(superStrengthTime >= 1000){
+            powerups.remove("SuperStrength");
+            canSuperStrength = false;
+            superStrengthTime = 0;
+        }
+    }
+    
 
     
 }
@@ -176,7 +190,9 @@ private int frameCount = 0;
  private boolean checkWallCollision(){
     for(GameObject obj : handler.object){
         if(obj.getId() == ID.Block){
-            if(this.getRect().intersects(obj.getRect())){
+            Rectangle myRect = this.getRect();
+            Rectangle objRect = obj.getRect();
+            if(myRect != null && objRect != null && myRect.intersects(objRect)){
                 return true;
             }
         }
@@ -187,7 +203,9 @@ private int frameCount = 0;
 private Enemy checkEnemyCollision(){
     for(GameObject obj : handler.object){
         if(obj.getId() == ID.Enemy){
-            if(this.getRect().intersects(obj.getRect())){
+            Rectangle myRect = this.getRect();
+            Rectangle objRect = obj.getRect();
+            if(myRect != null && objRect != null && myRect.intersects(objRect)){
                 return (Enemy) obj;
             }
         }
@@ -198,7 +216,9 @@ private Enemy checkEnemyCollision(){
 public Crate checkCrateCollision(){
     for(GameObject obj : handler.object){
         if(obj.getId() == ID.Crate){
-            if(this.getRect().intersects(obj.getRect())){
+            Rectangle myRect = this.getRect();
+            Rectangle objRect = obj.getRect();
+            if(myRect != null && objRect != null && myRect.intersects(objRect)){
                 return (Crate) obj;
             }
         }
@@ -322,5 +342,21 @@ public void addGuns(String gun) {
         return canSuperSpeed;
     }
 
+
+    public int getSuperSpeedTime() {
+        return superSpeedTime;
+    }
+
+    public void setSuperStrengthTime(int superStrengthTime) {
+        this.superStrengthTime = superStrengthTime;
+    }
+
+    public int getSuperStrengthTime() {
+        return superStrengthTime;
+    }
+
+    public boolean isCanSuperStrength() {
+        return canSuperStrength;
+    }
 
 }

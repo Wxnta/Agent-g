@@ -29,6 +29,7 @@ public static final int WIDTH = 1200, HEIGHT = 800;
  private boolean canShoot = true; //Lets us know if player can shoot
  private BufferedImageLoader loader = new BufferedImageLoader();
  private Image floorImg = (new ImageIcon("Assets/background/floor.png")).getImage();
+ 
  private Font fnt50;
  private Font fnt100;
  private Font fnt20;
@@ -144,6 +145,7 @@ public static final int WIDTH = 1200, HEIGHT = 800;
   if(player.checkCrateCollision() != null){
       Crate crate = player.checkCrateCollision();
       crate.giveLoot();
+      crate.setHitboxDisabled(true);
       crateCount -=1;
       crateTable.remove(crate);
       
@@ -231,7 +233,7 @@ public static final int WIDTH = 1200, HEIGHT = 800;
 
     if (c.getRed() == 0 && c.getGreen() == 255 && c.getBlue() == 255 && Util.randint(0, 3) == 0) {
    // System.err.println("Adding Crate at ("+xx*32+","+yy*32+")");
-        Crate baseCrate = new Crate(xx * 32, yy * 32, ID.Crate, handler, player);
+        Crate baseCrate = new Crate(xx * 32, yy * 32, ID.Crate, handler, player, wave);
         crateTable.add(baseCrate);
         crateCount += 1;
         handler.addObject(baseCrate);
@@ -253,10 +255,10 @@ public static final int WIDTH = 1200, HEIGHT = 800;
     //Reads the RGB value on each position from the image
     Color c = new Color(image.getRGB(xx, yy), true);
 
-    if (c.getRed() == 0 && c.getGreen() == 255 && c.getBlue() == 255 && Util.randint(0, 3) == 0) {
+    if (c.getRed() == 0 && c.getGreen() == 255 && c.getBlue() == 255 && Util.randint(0, 1) == 0) {
     //System.err.println("Adding Crate at ("+xx*32+","+yy*32+")");
     if(crateCount < 5){
-      Crate baseCrate = new Crate(xx * 32, yy * 32, ID.Crate, handler, player);
+      Crate baseCrate = new Crate(xx * 32, yy * 32, ID.Crate, handler, player,wave);
         if(crateTable.samePos(baseCrate.hashCode()) != null){
           //System.err.println(" Crate Stacked at ("+xx*32+","+yy*32+")");
           return;
@@ -328,7 +330,7 @@ public static final int WIDTH = 1200, HEIGHT = 800;
    seconds = frameCount/50;
   
   if(seconds == 60){
-    System.err.println("AGAGAG");
+   // System.err.println("AGAGAG");
     min += 1;
     seconds = 0;
     frameCount = 0;
@@ -368,12 +370,50 @@ public static final int WIDTH = 1200, HEIGHT = 800;
   g.fillRect(900 + camera.getX(), 20 + camera.getY(), player.getHealth() * 2, 30);
 
 
-   g.setColor(Color.CYAN);
-   g.setFont(fnt20);
    
+   g.setFont(fnt20);
+
+   if(player.getPowerups().contains("SuperStrength") && player.getSuperStrengthTime() > 0){
+    g.setColor(Color.CYAN);
+    g.drawString("SuperStrength: " + ((1000 - player.getSuperStrengthTime())/50) +"s", camera.getX() + 10, camera.getY() + HEIGHT - 100);
+   }
+   else{
+    g.setColor(Color.ORANGE);
+    g.drawString("SuperStrength: " + player.getPowerups().contains("SuperStrength"), camera.getX() + 10, camera.getY() + HEIGHT - 100);
+   }
+
+   if(player.getRpgAmmo() == 0){
+    g.setColor(Color.ORANGE);
    g.drawString("RPG Bullets: "+ player.getRpgAmmo() +"/3", camera.getX() + 10, camera.getY() + HEIGHT - 70);
-   g.drawString("SuperSpeed: " + player.getPowerups().contains("SuperSpeed"), camera.getX() + 10, camera.getY() + HEIGHT - 40);
-   g.drawString("Dash: "+ player.getCanDash(player.getPowerups()), camera.getX() + 10, camera.getY() + HEIGHT - 10);
+   }
+   else{
+    g.setColor(Color.CYAN);
+   g.drawString("RPG Bullets: "+ player.getRpgAmmo() +"/3", camera.getX() + 10, camera.getY() + HEIGHT - 70);
+   }
+
+
+   if(!player.getPowerups().contains("SuperSpeed")){
+    g.setColor(Color.ORANGE);
+    g.drawString("SuperSpeed: " + player.getPowerups().contains("SuperSpeed"), camera.getX() + 10, camera.getY() + HEIGHT - 40);
+   }
+   else if(player.isCanSuperSpeed()){
+    g.setColor(Color.CYAN);
+    g.drawString("SuperSpeed: " + ((250 - player.getSuperSpeedTime())/50) +"s", camera.getX() + 10, camera.getY() + HEIGHT - 40);
+   }
+   else{
+    g.setColor(Color.CYAN);
+    g.drawString("SuperSpeed: Ready", camera.getX() + 10, camera.getY() + HEIGHT - 40);
+   }
+   
+   if(!player.getCanDash(player.getPowerups())){
+    g.setColor(Color.ORANGE);
+    g.drawString("Dash: "+ player.getCanDash(player.getPowerups()), camera.getX() + 10, camera.getY() + HEIGHT - 10);
+   }
+   else{
+    g.setColor(Color.CYAN);
+    g.drawString("Dash: "+ player.getCanDash(player.getPowerups()), camera.getX() + 10, camera.getY() + HEIGHT - 10);
+   }
+   
    
   
   g2D.translate(camera.getX(), camera.getY());

@@ -8,6 +8,7 @@ public class Bullets extends GameObject{
   private double  speed = 10;
   Handler handler;
   private int damage = 20; //How much damage our bullets
+  // private int superStrengthTime = 0;
   Player player;
 
   //For RPG
@@ -60,6 +61,15 @@ public class Bullets extends GameObject{
          
         
       }
+
+      // if(player.getPowerups().contains("SuperStrength")){
+      //   superStrengthTime ++;
+      //   System.err.println(superStrengthTime);
+      //   player.setSuperStrengthTime(superStrengthTime);
+      //   if(superStrengthTime >= 1000){
+      //     player.getPowerups().remove("SuperStrength");
+      //   }
+      // }
       
       //Damage enemy
       Enemy enemy = checkEnemyCollision();
@@ -71,11 +81,19 @@ public class Bullets extends GameObject{
           handler.removeObject(this);
         }
       }
+
+      if(player.getPowerups().contains("SuperStrength")){
+        damage = 40;
+      }
+      else{
+        damage = 20;
+      }
       
   }
   
   // Gets damage, the bullets does
   public int getDamage() {
+ 
     return damage;
   }       
 
@@ -110,7 +128,9 @@ public class Bullets extends GameObject{
   private boolean checkWallCollision(){
     for(GameObject obj : handler.object){
         if(obj.getId() == ID.Block){
-            if(this.getRect().intersects(obj.getRect())){
+            Rectangle myRect = this.getRect();
+            Rectangle objRect = obj.getRect();
+            if(myRect != null && objRect != null && myRect.intersects(objRect)){
                 return true;
             }
         }
@@ -122,12 +142,16 @@ public class Bullets extends GameObject{
 private Enemy checkEnemyCollision(){
     for(GameObject obj : handler.object){
         if(obj.getId() == ID.Enemy){
-            if(this.getRect().intersects(obj.getRect())){
+            Rectangle myRect = this.getRect();
+            Rectangle objRect = obj.getRect();
+            if(myRect != null && objRect != null && myRect.intersects(objRect)){
                 return (Enemy) obj;
             }
         }
     }
     return null;
 }
+
+ 
   
 }

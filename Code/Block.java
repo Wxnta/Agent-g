@@ -1,10 +1,9 @@
-import java.awt.Color;
-import java.awt.Graphics;
-import java.awt.Rectangle; 
+import java.awt.*;
 //This class handles the environment(barriers)
 public class Block extends GameObject{
   
   private int width = 32, height = 32;
+
   
   //Constructor class for Block
   public Block(int x, int y, ID id){
