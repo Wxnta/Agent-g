@@ -1,5 +1,5 @@
 import java.awt.*;
-import javax.swing.ImageIcon;
+import javax.swing.*;
 //Bullets
 //Controls Movement, Dameage and Type of Bullet(From diff Guns)
 public class Bullets extends GameObject{
@@ -9,7 +9,9 @@ public class Bullets extends GameObject{
   Handler handler;
   private int damage = 20; //How much damage our bullets
   // private int superStrengthTime = 0;
-  Player player;
+  private Player player;
+  private Enemy shootingEnemy;
+  String type;
 
   //For RPG
   private boolean isExploded = false; //checks if bullets hits a wall, for it to stay there
@@ -18,9 +20,12 @@ public class Bullets extends GameObject{
 
   
 
-  private Image bulletImg = new ImageIcon("Assets/weapons/shoot/9.png").getImage(); 
+
+  private Image bulletImg ; 
+  
   
   //Bullets Constructor class
+
   public Bullets(int x, int y,int targetX, int targetY, ID id, Handler handler, Player player){
     super(x, y, id);
     //Calculate distance to Mouse Target
@@ -32,7 +37,25 @@ public class Bullets extends GameObject{
     vy = (dy/hyp)  * speed;
     this.handler = handler;
     this.player = player;
+    type = "Player";
   }
+
+
+  public Bullets(int x, int y,int targetX, int targetY, ID id, Handler handler, Enemy enemy){
+    super(x, y, id);
+    //Calculate distance to Mouse Target
+    double dx = targetX-x;
+    double dy = targetY-y;
+    //Calculate the line
+    double hyp = Math.sqrt((dx*dx)+(dy*dy));
+    vx = (dx/hyp) * speed ;
+    vy = (dy/hyp)  * speed;
+    this.handler = handler;
+    shootingEnemy = enemy;
+    type = "shootingEnemy";
+  }  
+
+
   //Gets bullet hitbox
   @Override
   public Rectangle getRect() {
@@ -46,21 +69,42 @@ public class Bullets extends GameObject{
     
       
       if(checkWallCollision()){
-         
-        if(player.getGuns().contains("RPG")){
+
+         if(type.equals("Player")){
+        if(player.getCurrentGun().equals("RPG")){
           
-         explosion = new Explosion ((int)x-100,(int)y-100,id.Explosion, handler);
-         handler.addObject(explosion);
-         
-         player.setRpgAmmo(player.getRpgAmmo() - 1);
+            
+          explosion = new Explosion ((int)x-100,(int)y-100,id.Explosion, handler);
+          handler.addObject(explosion);
           
-         
-      }
+          player.setRpgAmmo(player.getRpgAmmo() - 1);
+            
+          
+  
+    }
         handler.removeObject(this);
         
-         
-        
+ 
       }
+      
+}
+
+  if(type.equals("Player")){
+       if(player.getCurrentGun().equals("RPG")){
+       Enemy enemy = checkEnemyCollision();
+        
+        if(enemy != null){
+
+            explosion = new Explosion ((int)x-100,(int)y-100,id.Explosion, handler);
+            handler.addObject(explosion);
+          
+           player.setRpgAmmo(player.getRpgAmmo() - 1);
+
+    }
+  }
+  }
+
+    
 
       // if(player.getPowerups().contains("SuperStrength")){
       //   superStrengthTime ++;
@@ -72,22 +116,63 @@ public class Bullets extends GameObject{
       // }
       
       //Damage enemy
-      Enemy enemy = checkEnemyCollision();
-      
-      if(enemy != null){
-        if(enemy.getId() == ID.Enemy){
-          enemy.getHurt(damage);
+      if(type.equals("Player")){
+
+        Enemy enemy = checkEnemyCollision();
+        
+        if(enemy != null){
+          if(player.getCurrentGun().equals("Tranquilizer")){
+            if(enemy.getId() == ID.Enemy){
+              enemy.setIsFrozen(true);
+            enemy.getHurt(damage/2);
+            //Removes bullets
+            player.setFreezeAmmo(player.getFreezeAmmo() - 1);
+            handler.removeObject(this);
+          }
+          
+        }
+          if(enemy.getId() == ID.Enemy){
+            enemy.getHurt(damage);
+            //Removes bullets
+            handler.removeObject(this);
+          }
+        }
+
+        
+
+        if(player.getPowerups().contains("SuperStrength")){
+          damage = 40;
+        }
+        else{
+          damage = 20;
+        }
+    }
+    else{
+      Player player = checkPlayerCollision();
+        
+      if(player != null){
+        if(player.getId() == ID.Player){
+          player.getHurt(20);
           //Removes enemy
           handler.removeObject(this);
         }
-      }
+      } 
+      
+      Enemy friendEnemy = checkEnemyCollision();
+        
+        if(friendEnemy != null){
+          if(friendEnemy.getId() == ID.Enemy){
+            friendEnemy.getHurt(5);
+            //Removes enemy
+            handler.removeObject(this);
+          }
+        }
+    }
+      
+      //System.out.println("Enemy Hit: ");
 
-      if(player.getPowerups().contains("SuperStrength")){
-        damage = 40;
-      }
-      else{
-        damage = 20;
-      }
+
+      // System.out.println("Enemy health: "+ enemy.getHealth());
       
   }
   
@@ -97,10 +182,15 @@ public class Bullets extends GameObject{
     return damage;
   }       
 
+
   // Sets the damage, the bullets does
   public void setDamage(int damage) {
     this.damage = damage;
   }
+
+
+  //Checks if bullets collide with enemy
+
 
   // Handle bullets movement
   public void move() {
@@ -119,7 +209,12 @@ public class Bullets extends GameObject{
   //Draws the bullets on screen
   @Override
   public void draw(Graphics g) {
-   
+    if(type.equals("Player")){
+      bulletImg  = new ImageIcon("Assets/weapons/shoot/1.png").getImage();
+    }
+    else{
+      bulletImg  = new ImageIcon("Assets/weapons/shoot/9.png").getImage();
+    }
     g.drawImage(bulletImg,(int)x,(int)y, null);
 
   }
@@ -138,6 +233,7 @@ public class Bullets extends GameObject{
     return false;
 }
 
+
 //Checks if bullets collide with enemy
 private Enemy checkEnemyCollision(){
     for(GameObject obj : handler.object){
@@ -145,13 +241,34 @@ private Enemy checkEnemyCollision(){
             Rectangle myRect = this.getRect();
             Rectangle objRect = obj.getRect();
             if(myRect != null && objRect != null && myRect.intersects(objRect)){
+               if(type.equals("shootingEnemy") && shootingEnemy != obj){
                 return (Enemy) obj;
+               }
+               if(type.equals("Player")){
+                return (Enemy) obj;
+               }
             }
         }
     }
     return null;
 }
 
- 
-  
+private Player checkPlayerCollision(){
+    for(GameObject obj : handler.object){
+        if(obj.getId() == ID.Player){
+            Rectangle myRect = this.getRect();
+            Rectangle objRect = obj.getRect();
+            if(myRect != null && objRect != null && myRect.intersects(objRect)){
+                return (Player) obj;
+            }
+        }
+    }
+    return null;
 }
+
+
+}
+
+
+ 
+

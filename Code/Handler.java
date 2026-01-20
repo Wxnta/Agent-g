@@ -12,11 +12,12 @@ public class Handler {
     public void update(boolean[] keys) {
       
     for(int i = 0; i < object.size(); i++){
+
       
       
         object.get(i).update();
         
- 
+
 }
   }
   //Draws each object in the list

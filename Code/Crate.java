@@ -22,7 +22,7 @@ public class Crate extends GameObject{
      private Font fnt20;
     // private String[] powerUP = {"Dash","Speed Boost","Increase Damage","Increase Fire Rate"};
     private ArrayList<String> powerUP = new ArrayList<>(Arrays.asList("Dash", "SuperSpeed","SuperStrength"));
-    private ArrayList<String> guns = new ArrayList<>(Arrays.asList("RPG"));
+    private ArrayList<String> guns = new ArrayList<>(Arrays.asList("RPG", "Tranquilizer"));
     private ArrayList<String> refresh = new ArrayList<>(Arrays.asList("HP","Ammo"));
      private ArrayList<String> lootbox = new ArrayList<String>();
       
@@ -58,6 +58,13 @@ public class Crate extends GameObject{
         }
         if(player.getGuns().contains("RPG") == false && guns.contains("RPG") == false){
             guns.add("RPG");
+        }
+
+        if(player.getGuns().contains("Tranquilizer")){
+            guns.remove("Tranquilizer");
+        }
+        if(player.getGuns().contains("Tranquilizer") == false && guns.contains("Tranquilizer") == false){
+            guns.add("Tranquilizer");
         }
 
         //Removes dash from lootpool if we already have it
@@ -158,6 +165,12 @@ public class Crate extends GameObject{
                 player.setRpgAmmo(3);
                 
             }
+            if(lootbox.get(randNum).equals("Tranquilzer")){
+                player.addGuns("Tranquilizer");
+                lootMsg = "+5 Tranquilizer Bullets";
+                player.setFreezeAmmo(5);
+                
+            }
         }   
         
     }
@@ -202,11 +215,11 @@ public void draw(Graphics g){
     return ((int)x * 1000 + (int)y);
   }
 
+
     public void setHitboxDisabled(boolean hitboxDisabled) {
         this.hitboxDisabled = hitboxDisabled;
     }
   
 
 }
-
 

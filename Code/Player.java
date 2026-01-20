@@ -24,8 +24,10 @@ private int frameCount = 0;
  private boolean canDash= true;
  private boolean  canSuperSpeed;
  private boolean canSuperStrength;
+ private String currentGun = "PulseRifle";
 
  private int rpgAmmo;
+ private int freezeAmmo;
 // private int mouseX, mouseY;
  private ArrayList<String> powerups = new ArrayList<String>();
  private ArrayList<String> guns = new ArrayList<String>();
@@ -57,7 +59,7 @@ private int frameCount = 0;
     
     
    //FIX SUPERSPEED SO ITS TRUE ON CLICK AND COUNTS DOWN ON CLICK
-    if(powerups.contains("SuperSpeed") && keys[KeyEvent.VK_CONTROL]){
+    if(powerups.contains("SuperSpeed") && keys[KeyEvent.VK_SHIFT]){
         superSpeedTime ++;
         canSuperSpeed = true;
         if(superSpeedTime >= 250){
@@ -85,14 +87,32 @@ private int frameCount = 0;
     }
 
     // ONLY dash when shift is pressed
-    if (canDash && keys[KeyEvent.VK_SHIFT] && powerups.contains("Dash")) {
+    if (canDash && keys[KeyEvent.VK_CONTROL] && powerups.contains("Dash")) {
         dash(camera, mouseX, mouseY);
         canDash = false;
         frameCount = 0;
     }
 
+    if(guns.contains("RPG") && keys[KeyEvent.VK_R]){
+        currentGun = "RPG";
+    }
+
+    if(guns.contains("Tranquilzer") && keys[KeyEvent.VK_F]){
+        currentGun = "Tranquilzer";
+    }
+
+    if(keys[KeyEvent.VK_E]){
+        currentGun = "PulseRifle";
+    }
+
     if(rpgAmmo == 0 && guns.contains("RPG")){
         guns.remove("RPG");
+        currentGun = "PulseRifle";
+    }
+
+    if(freezeAmmo == 0 && guns.contains("Tranquilzer")){
+        guns.remove("Tranquilzer");
+        currentGun = "PulseRifle";
     }
     
     if(powerups.contains("SuperStrength")){
@@ -357,6 +377,18 @@ public void addGuns(String gun) {
 
     public boolean isCanSuperStrength() {
         return canSuperStrength;
+    }
+
+    public void setFreezeAmmo(int freezeAmmo) {
+        this.freezeAmmo = freezeAmmo;
+    }
+
+    public int getFreezeAmmo() {
+        return freezeAmmo;
+    }
+
+    public String getCurrentGun() {
+        return currentGun;
     }
 
 }

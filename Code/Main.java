@@ -17,6 +17,10 @@ class Main extends BaseFrame{
 
 public static final int WIDTH = 1200, HEIGHT = 800;
  private Handler handler; //handles gameObject actions
+
+ private GameState gameState = GameState.MENU;
+ private int menuOption = 0; 
+
  private Player player; //our player
  private Camera camera; //Our world camera
  private  BufferedImage lvl; //Current lvl image
@@ -29,6 +33,9 @@ public static final int WIDTH = 1200, HEIGHT = 800;
  private boolean canShoot = true; //Lets us know if player can shoot
  private BufferedImageLoader loader = new BufferedImageLoader();
  private Image floorImg = (new ImageIcon("Assets/background/floor.png")).getImage();
+ private Image menuImg = (new ImageIcon("Assets/gameIMG/menuIMG.png")).getImage();
+ private Image controlsImg = (new ImageIcon("Assets/gameIMG/controlsIMG.png")).getImage();
+ private Image storyImg = (new ImageIcon("Assets/gameIMG/storyIMG.png")).getImage();
  
  private Font fnt50;
  private Font fnt100;
@@ -103,7 +110,39 @@ public static final int WIDTH = 1200, HEIGHT = 800;
  
 @Override
  public void update(){
-  long before = System.nanoTime();
+      if (gameState == GameState.MENU) {
+        loadMenu();
+        return;
+    }
+
+    if (gameState == GameState.PLAY) {
+        loadGame();
+        return;
+    }
+
+    if(gameState == GameState.CONTROLS){
+      loadControls();
+      return;
+    }
+
+
+    if (gameState == GameState.STORY) {
+        loadStory();
+        return;
+    }
+
+    if (gameState == GameState.PAUSE) {
+        return;
+    }
+
+
+
+ 
+  }
+
+  private void loadGame(){
+     long before = System.nanoTime();
+     //player.addGuns("Freeze");
  //Makes sure the camera is always there
   if(camera == null) return;
   frameCount++;
@@ -168,7 +207,7 @@ public static final int WIDTH = 1200, HEIGHT = 800;
     seconds = 0;
     frameCount = 0;
     waveTxtOn = true;
-    wave += 1;
+    wave += 2;
     System.err.println("Wave: " + wave);
     lvl = loader.loadBuffImg("Assets/LvlImages/lvl1Image - Copy.png");
     spawnZombie(lvl);
@@ -191,6 +230,41 @@ public static final int WIDTH = 1200, HEIGHT = 800;
  
   return radians;
   }
+
+  private void loadMenu(){
+  //   g.drawRect(10, 610, 320, 140);
+
+  //  g.drawRect(410, 610, 320, 140);
+
+  //  g.drawRect(810, 610, 320, 140);
+
+  if(mb == MouseEvent.BUTTON1 && 10 <= mx && mx <= 330 && 610 <= my && my <= 750 ){
+    gameState = gameState.PLAY;
+  }
+
+  if(mb == MouseEvent.BUTTON1 && 410 <= mx && mx <= 740 && 610 <= my && my <= 750 ){
+    gameState = gameState.CONTROLS;
+  }
+
+  if(mb == MouseEvent.BUTTON1 && 810 <= mx && mx <= 1140 && 610 <= my && my <= 750 ){
+    gameState = gameState.STORY;
+  }
+     
+  }
+
+  private void loadControls(){
+    // g.drawRect(20, 10, 120, 120);
+    if(mb == MouseEvent.BUTTON1 && 20 <= mx && mx <= 140 && 10 <= my && my <= 130 ){
+    gameState = gameState.MENU;
+  }
+  }
+
+  private  void loadStory(){
+    if(mb == MouseEvent.BUTTON1 && 20 <= mx && mx <= 140 && 10 <= my && my <= 130 ){
+    gameState = gameState.MENU;
+  }
+  }
+
  
  
 
@@ -222,7 +296,7 @@ public static final int WIDTH = 1200, HEIGHT = 800;
     if(wave ==1 ){
     if (c.getGreen() == 255 && c.getRed() == 0 && c.getBlue() == 0) {
        
-        Enemy enemy = new Enemy(xx * 32, yy * 32, ID.Enemy, handler, player, wave);
+        Enemy enemy = new Enemy(xx * 32, yy * 32, ID.Enemy, handler, player, wave, "attackingEnemy", camera);
         enemyList.add(enemy);
         handler.addObject(enemy);
         
@@ -286,9 +360,23 @@ public static final int WIDTH = 1200, HEIGHT = 800;
 
     //Reads the RGB value on each position from the image
         Color c = new Color(image.getRGB(xx, yy), true);
-      if (c.getGreen() == 255 && c.getRed() == 0 && c.getBlue() == 0 && enemyList.size() <= (wave*2 + 4) && Util.randint(0, 3) == 0 ) {
-          System.err.println("Adding enemies");
-          Enemy enemy = new Enemy(xx * 32, yy * 32, ID.Enemy, handler, player, wave);
+      if (c.getGreen() == 255 && c.getRed() == 0 && c.getBlue() == 0 && enemyList.size() <= (wave*2 + 3) && Util.randint(0, 3) == 0 ) {
+          // System.err.println("Adding enemies");
+          String type;
+          if(Util.randint(1, 4) == 1 && wave>=3){
+            type = "shootingEnemy";
+            
+          }
+          else{
+            type = "attackingEnemy";
+
+          }
+
+          System.err.println(type);
+          if(type.equals("shootingEnemy")){
+            System.err.println("Shooting Enemy Spawned");
+          }
+          Enemy enemy = new Enemy(xx * 32, yy * 32, ID.Enemy, handler, player, wave, type, camera);
           enemyList.add(enemy);
           handler.addObject(enemy);
           
@@ -299,12 +387,11 @@ public static final int WIDTH = 1200, HEIGHT = 800;
     
    }
   }
- 
 
- //Draws everything in our code
- @Override
- public void draw(Graphics g){
- if (camera==null)return;
+
+
+  private void drawGame(Graphics g){
+     if (camera==null)return;
     Graphics2D g2D = (Graphics2D) g;
     //everything sandwiched between translate will move with camera
     g2D.translate(-camera.getX(), -camera.getY());
@@ -364,20 +451,39 @@ public static final int WIDTH = 1200, HEIGHT = 800;
   //Draw Health Bar
   g.setColor(Color.BLACK);
   g.fillRect(890 + camera.getX(), 10 + camera.getY(), 220, 50);
-  g.setColor(Color.GREEN);
+
+  if(player.getHealth() >= 50){
+    g.setColor(Color.GREEN);
+  }
+  else if (player.getHealth() >= 30){
+    g.setColor(Color.YELLOW);
+  }
+  else{
+    g.setColor(Color.RED);
+  }
   g.fillRect(900 + camera.getX(), 20 + camera.getY(), player.getHealth() * 2, 30);
 
 
    
+  //  g.setFont(fnt50);
+  //  g.drawString("Current Gun: " + player.getCurrentGun(), camera.getX() + WIDTH/2 -200, camera.getY() + HEIGHT - 10);
    g.setFont(fnt20);
-
    if(player.getPowerups().contains("SuperStrength") && player.getSuperStrengthTime() > 0){
     g.setColor(Color.CYAN);
-    g.drawString("X2 DAMAGE: " + ((1000 - player.getSuperStrengthTime())/50) +"s", camera.getX() + 10, camera.getY() + HEIGHT - 100);
+    g.drawString("X2 DAMAGE: " + ((1000 - player.getSuperStrengthTime())/50) +"s", camera.getX() + 10, camera.getY() + HEIGHT - 130);
    }
    else{
     g.setColor(Color.ORANGE);
-    g.drawString("SuperStrength: " + player.getPowerups().contains("SuperStrength"), camera.getX() + 10, camera.getY() + HEIGHT - 100);
+    g.drawString("SuperStrength: " + player.getPowerups().contains("SuperStrength"), camera.getX() + 10, camera.getY() + HEIGHT - 130);
+   }
+
+   if(player.getFreezeAmmo() == 0){
+    g.setColor(Color.ORANGE);
+   g.drawString("Freeze Bullets: "+ player.getFreezeAmmo() +"/5", camera.getX() + 10, camera.getY() + HEIGHT - 100);
+   }
+   else{
+    g.setColor(Color.CYAN);
+   g.drawString("Freeze Bullets: "+ player.getFreezeAmmo() +"/5", camera.getX() + 10, camera.getY() + HEIGHT - 100);
    }
 
    if(player.getRpgAmmo() == 0){
@@ -415,6 +521,25 @@ public static final int WIDTH = 1200, HEIGHT = 800;
    
   
   g2D.translate(camera.getX(), camera.getY());
+  }
+ 
+
+ //Draws everything in our code
+ @Override
+ public void draw(Graphics g){
+  if (gameState == GameState.MENU) {
+    g.drawImage(menuImg, 0, 0, null);
+  }
+  else if(gameState == GameState.PLAY){
+  drawGame(g);
+  }
+  else if(gameState == GameState.CONTROLS){
+    g.drawImage(controlsImg, 0, 0, null);
+    
+  }
+  else if(gameState == GameState.STORY){
+    g.drawImage(storyImg, 0, 0, null);
+  }
   
  }
  
@@ -423,13 +548,6 @@ public static final int WIDTH = 1200, HEIGHT = 800;
   new Main();
     } 
 
-    public int getMoney() {
-        return money;
-    }
-
-    public void setMoney(int money) {
-        this.money = money;
-    }
 }
 
 
