@@ -165,7 +165,7 @@ public class Crate extends GameObject{
                 player.setRpgAmmo(3);
                 
             }
-            if(lootbox.get(randNum).equals("Tranquilzer")){
+            if(lootbox.get(randNum).equals("Tranquilizer")){
                 player.addGuns("Tranquilizer");
                 lootMsg = "+5 Tranquilizer Bullets";
                 player.setFreezeAmmo(5);

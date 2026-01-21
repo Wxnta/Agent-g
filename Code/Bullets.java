@@ -4,13 +4,15 @@ import javax.swing.*;
 //Controls Movement, Dameage and Type of Bullet(From diff Guns)
 public class Bullets extends GameObject{
   
-  private int width = 20, height = 20;
-  private double  speed = 10;
+  public static final int WIDTH = 20, HEIGHT = 20;
+  private static final double  SPEED = 10;
   Handler handler;
   private int damage = 20; //How much damage our bullets
   // private int superStrengthTime = 0;
   private Player player;
   private Enemy shootingEnemy;
+  private SoundEffect explosionSFX = new SoundEffect("Assets/sounds/explosion-2.wav");
+  private SoundEffect hitSFX = new SoundEffect("Assets/sounds/death.wav");
   String type;
 
   //For RPG
@@ -33,8 +35,8 @@ public class Bullets extends GameObject{
     double dy = targetY-y;
     //Calculate the line
     double hyp = Math.sqrt((dx*dx)+(dy*dy));
-    vx = (dx/hyp) * speed ;
-    vy = (dy/hyp)  * speed;
+    vx = (dx/hyp) * SPEED ;
+    vy = (dy/hyp)  * SPEED;
     this.handler = handler;
     this.player = player;
     type = "Player";
@@ -48,8 +50,8 @@ public class Bullets extends GameObject{
     double dy = targetY-y;
     //Calculate the line
     double hyp = Math.sqrt((dx*dx)+(dy*dy));
-    vx = (dx/hyp) * speed ;
-    vy = (dy/hyp)  * speed;
+    vx = (dx/hyp) * SPEED ;
+    vy = (dy/hyp)  * SPEED;
     this.handler = handler;
     shootingEnemy = enemy;
     type = "shootingEnemy";
@@ -59,7 +61,7 @@ public class Bullets extends GameObject{
   //Gets bullet hitbox
   @Override
   public Rectangle getRect() {
-    return new Rectangle((int)x, (int)y, width, height);
+    return new Rectangle((int)x, (int)y, WIDTH, HEIGHT);
   }
 
   //Handles the movement, deletes it if it hits a wall or enemies
@@ -76,16 +78,18 @@ public class Bullets extends GameObject{
             
           explosion = new Explosion ((int)x-100,(int)y-100,id.Explosion, handler);
           handler.addObject(explosion);
-          
+          explosionSFX.play();
           player.setRpgAmmo(player.getRpgAmmo() - 1);
             
           
   
     }
-        handler.removeObject(this);
+     ;
         
  
       }
+
+      handler.removeObject(this);
       
 }
 
@@ -97,6 +101,7 @@ public class Bullets extends GameObject{
 
             explosion = new Explosion ((int)x-100,(int)y-100,id.Explosion, handler);
             handler.addObject(explosion);
+            explosionSFX.play();
           
            player.setRpgAmmo(player.getRpgAmmo() - 1);
 
@@ -124,6 +129,7 @@ public class Bullets extends GameObject{
           if(player.getCurrentGun().equals("Tranquilizer")){
             if(enemy.getId() == ID.Enemy){
               enemy.setIsFrozen(true);
+              hitSFX.play();
             enemy.getHurt(damage/2);
             //Removes bullets
             player.setFreezeAmmo(player.getFreezeAmmo() - 1);
@@ -133,6 +139,7 @@ public class Bullets extends GameObject{
         }
           if(enemy.getId() == ID.Enemy){
             enemy.getHurt(damage);
+            hitSFX.play();
             //Removes bullets
             handler.removeObject(this);
           }
@@ -153,7 +160,8 @@ public class Bullets extends GameObject{
       if(player != null){
         if(player.getId() == ID.Player){
           player.getHurt(20);
-          //Removes enemy
+          //Removes bullets
+          hitSFX.play();
           handler.removeObject(this);
         }
       } 
@@ -163,6 +171,7 @@ public class Bullets extends GameObject{
         if(friendEnemy != null){
           if(friendEnemy.getId() == ID.Enemy){
             friendEnemy.getHurt(5);
+            hitSFX.play();
             //Removes enemy
             handler.removeObject(this);
           }
@@ -210,7 +219,15 @@ public class Bullets extends GameObject{
   @Override
   public void draw(Graphics g) {
     if(type.equals("Player")){
+      if(player.getCurrentGun().equals("PulseRifle")){
       bulletImg  = new ImageIcon("Assets/weapons/shoot/1.png").getImage();
+      }
+      if(player.getCurrentGun().equals("Tranquilizer")){
+        bulletImg = new ImageIcon("Assets/weapons/shoot/10.png").getImage();
+      }
+      if(player.getCurrentGun().equals("RPG")){
+        bulletImg = new ImageIcon("Assets/weapons/shoot/4.png").getImage();
+      }
     }
     else{
       bulletImg  = new ImageIcon("Assets/weapons/shoot/9.png").getImage();

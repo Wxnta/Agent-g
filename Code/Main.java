@@ -27,6 +27,8 @@ public static final int WIDTH = 1200, HEIGHT = 800;
  private int frameCount = 0;
  private int min = 0;
  private int seconds = 0;
+ private int killCount = 0;
+ private int scoreCount = 0;
  String timeString;
  private int shootFrameCount = 0; 
  private int gunDelay = 0; //Time between shots
@@ -34,14 +36,15 @@ public static final int WIDTH = 1200, HEIGHT = 800;
  private BufferedImageLoader loader = new BufferedImageLoader();
  private Image floorImg = (new ImageIcon("Assets/background/floor.png")).getImage();
  private Image menuImg = (new ImageIcon("Assets/gameIMG/menuIMG.png")).getImage();
+ private Image gameOverImg = (new ImageIcon("Assets/gameIMG/GAME OVER.png")).getImage();
  private Image controlsImg = (new ImageIcon("Assets/gameIMG/controlsIMG.png")).getImage();
  private Image storyImg = (new ImageIcon("Assets/gameIMG/storyIMG.png")).getImage();
+ private Image kcImg = (new ImageIcon("Assets/hud/killCount.png")).getImage();
  
  private Font fnt50;
  private Font fnt100;
  private Font fnt20;
- private int crateRespawnTime = 300; 
- private int money = 0;
+ public static final int CRATERESPAWNTIME = 300; 
  private HashTable<Crate> crateTable = new HashTable<Crate>();
  private ArrayList<Enemy> enemyList = new ArrayList<Enemy>();
  private int wave = 1;
@@ -51,6 +54,16 @@ public static final int WIDTH = 1200, HEIGHT = 800;
  private int waveTxtTImer;
 
  private int crateCount = 0;
+ private SoundEffect shootSFX = new SoundEffect("Assets/sounds/shoot-1.wav");
+
+ private MusicPlayer menuMusic = new MusicPlayer("Assets/music/menuMusic.mid");
+ private MusicPlayer storyMusic = new MusicPlayer("Assets/music/storyMusic.mid");
+ private MusicPlayer controlMusic = new MusicPlayer("Assets/music/controlMusic.mid");
+ private MusicPlayer gameOverMusic = new MusicPlayer("Assets/music/gameOverMusic.mid");
+  private MusicPlayer gameMusic = new MusicPlayer("Assets/music/gameMusic.mid");
+
+  private MusicPlayer currentMusic = null;
+
 
  
  public Main(){
@@ -64,6 +77,8 @@ public static final int WIDTH = 1200, HEIGHT = 800;
   // player.addPowerup("Dash");
   // player.addPowerup("SuperSpeed");
   // player.addGuns("RPG");
+
+  // (Wave = 1000)(Enemy = 100)
   
   
   
@@ -112,27 +127,61 @@ public static final int WIDTH = 1200, HEIGHT = 800;
  public void update(){
       if (gameState == GameState.MENU) {
         loadMenu();
+        if (currentMusic != menuMusic) {
+                if (currentMusic != null) currentMusic.stop();
+                menuMusic.setVolume(70);
+                menuMusic.loop();
+                currentMusic = menuMusic;
+            }
+    
         return;
     }
 
     if (gameState == GameState.PLAY) {
         loadGame();
+         if (currentMusic != gameMusic) {
+                if (currentMusic != null) currentMusic.stop();
+                gameMusic.setVolume(70);
+                gameMusic.loop();
+                currentMusic = gameMusic;
+            }
+        
         return;
     }
 
     if(gameState == GameState.CONTROLS){
       loadControls();
+       if (currentMusic != controlMusic) {
+                if (currentMusic != null) currentMusic.stop();
+                controlMusic.setVolume(70);
+                controlMusic.loop();
+                currentMusic = controlMusic;
+            }
       return;
     }
 
 
     if (gameState == GameState.STORY) {
         loadStory();
+         if (currentMusic != storyMusic) {
+                if (currentMusic != null) currentMusic.stop();
+                storyMusic.setVolume(70);
+                storyMusic.loop();
+                currentMusic = storyMusic;
+            }
         return;
     }
 
-    if (gameState == GameState.PAUSE) {
-        return;
+
+    if (gameState == GameState.GAME_OVER){
+      loadGameOver();
+       if (currentMusic != gameOverMusic) {
+                if (currentMusic != null) currentMusic.stop();
+                gameOverMusic.setVolume(70);
+                gameOverMusic.loop();
+                currentMusic = gameOverMusic;
+            }
+      return;
     }
 
 
@@ -168,7 +217,7 @@ public static final int WIDTH = 1200, HEIGHT = 800;
       if(mb == MouseEvent.BUTTON1){
        
         player.shoot(mx,my, player, camera);
-      
+        shootSFX.play();
       mb = 0;
       
       player.setAmmoCount(player.getAmmoCount() -1);
@@ -176,7 +225,7 @@ public static final int WIDTH = 1200, HEIGHT = 800;
   }
   }
 
-  if(shootFrameCount % crateRespawnTime == 0){
+  if(frameCount % CRATERESPAWNTIME == 0){
       spawnCrate(lvl);  
          
   }
@@ -194,6 +243,9 @@ public static final int WIDTH = 1200, HEIGHT = 800;
     if(enemyList.get(i).getHealth() <=0  ){
       handler.removeObject(enemyList.get(i));
       enemyList.remove(enemyList.get(i));
+      killCount++;
+      scoreCount++;
+      System.out.println(killCount);
     }
   }
 }
@@ -213,6 +265,11 @@ public static final int WIDTH = 1200, HEIGHT = 800;
     spawnZombie(lvl);
     nextWave = false;
   }
+
+  //GO TO GAME OVER SCREEN
+  if(player.getHealth() <= 0){
+     gameState = gameState.GAME_OVER;
+   }
   long after = System.nanoTime();
   //System.out.println(after-before);
  }
@@ -231,6 +288,45 @@ public static final int WIDTH = 1200, HEIGHT = 800;
   return radians;
   }
 
+private void resetGame(){
+    // Reset counters
+    frameCount = 0;
+    min = 0;
+    seconds = 0;
+    killCount = 0;
+    scoreCount = 0;
+    shootFrameCount = 0;
+    canShoot = true;
+    timeString = "";
+    wave = 1;
+    nextWave = false;
+    waveTxtOn = true;
+    waveTxtTImer = 0;
+    crateCount = 0;
+
+    // Clear world
+    enemyList.clear();
+
+    handler.object.clear();
+
+    // Reload level
+    lvl = loader.loadBuffImg("Assets/LvlImages/lvl1Image.png");
+
+    // Recreate player
+    player = new Player(100, 100, ID.Player, handler);
+    player.setAmmoCount(25);
+    handler.addObject(player);
+    gunDelay = player.getGunDelay();
+
+    // Recreate camera
+    camera = new Camera(0, 0, lvl);
+
+    // Reload map objects (blocks, enemies, spawn)
+    loadLevel(lvl);
+    spawnCrate(lvl);
+}
+
+
   private void loadMenu(){
   //   g.drawRect(10, 610, 320, 140);
 
@@ -240,14 +336,18 @@ public static final int WIDTH = 1200, HEIGHT = 800;
 
   if(mb == MouseEvent.BUTTON1 && 10 <= mx && mx <= 330 && 610 <= my && my <= 750 ){
     gameState = gameState.PLAY;
+    mb = 0;
+    
   }
 
   if(mb == MouseEvent.BUTTON1 && 410 <= mx && mx <= 740 && 610 <= my && my <= 750 ){
     gameState = gameState.CONTROLS;
+
   }
 
   if(mb == MouseEvent.BUTTON1 && 810 <= mx && mx <= 1140 && 610 <= my && my <= 750 ){
     gameState = gameState.STORY;
+
   }
      
   }
@@ -263,6 +363,35 @@ public static final int WIDTH = 1200, HEIGHT = 800;
     if(mb == MouseEvent.BUTTON1 && 20 <= mx && mx <= 140 && 10 <= my && my <= 130 ){
     gameState = gameState.MENU;
   }
+  }
+
+  //FIX TO CLICK RESPAWN RESTART ETC
+  private void loadGameOver(){
+
+
+
+ int scoreKillCount = killCount;
+ int scoreWaveCount = wave;
+ int finalScore = scoreKillCount * 100 + scoreWaveCount * 1000;
+
+
+
+
+
+    if(mb == MouseEvent.BUTTON1 && 80 <= mx && mx <= 519 && 510 <= my && my <= 695 ){
+      resetGame();
+      gameState = GameState.PLAY;
+      mb=0;
+
+    }
+
+
+    if(mb == MouseEvent.BUTTON1 && 680 <= mx && mx <= 1110 && 510 <= my && my <= 695 ){
+      resetGame();
+      gameState = GameState.MENU;
+      mb=0;
+
+    }
   }
 
  
@@ -412,6 +541,23 @@ public static final int WIDTH = 1200, HEIGHT = 800;
   g.setFont(fnt50);
   g.setColor(Color.RED);
   g.drawString("Ammo: " + player.getAmmoCount(), 50 + camera.getX(), 50 + camera.getY());
+     int kcx = 1100;
+  if(killCount < 10)
+    { 
+      kcx = 1100;
+
+    }
+  if(killCount >= 10 && killCount < 100){
+    kcx = 1065;
+  }
+  if(killCount >= 100){
+    kcx = 1030;
+  }
+  
+  g.drawImage(kcImg, kcx + camera.getX(),  + camera.getY() + HEIGHT - 40, null);
+  g.setFont(fnt50);
+  g.setColor(Color.RED) ;
+  g.drawString(""+killCount, kcx + 50 + camera.getX(), camera.getY() + HEIGHT - 10);
    seconds = frameCount/50;
   
   if(seconds == 60){
@@ -450,7 +596,7 @@ public static final int WIDTH = 1200, HEIGHT = 800;
 
   //Draw Health Bar
   g.setColor(Color.BLACK);
-  g.fillRect(890 + camera.getX(), 10 + camera.getY(), 220, 50);
+  g.fillRect(960 + camera.getX(), 10 + camera.getY(), 220, 50);
 
   if(player.getHealth() >= 50){
     g.setColor(Color.GREEN);
@@ -461,7 +607,7 @@ public static final int WIDTH = 1200, HEIGHT = 800;
   else{
     g.setColor(Color.RED);
   }
-  g.fillRect(900 + camera.getX(), 20 + camera.getY(), player.getHealth() * 2, 30);
+  g.fillRect(970 + camera.getX(), 20 + camera.getY(), player.getHealth() * 2, 30);
 
 
    
@@ -540,7 +686,21 @@ public static final int WIDTH = 1200, HEIGHT = 800;
   else if(gameState == GameState.STORY){
     g.drawImage(storyImg, 0, 0, null);
   }
-  
+
+  else if(gameState == GameState.GAME_OVER){
+
+    g.drawImage(gameOverImg, 0, 0, null);
+    g.setFont(fnt50);
+    g.setColor(Color.RED);
+    g.drawString(""+killCount, 50 , 190);
+    g.setFont(fnt50);
+    g.setColor(Color.RED);
+    g.drawString(""+wave, 650 , 290);
+    g.setFont(fnt50);
+    g.setColor(Color.RED);
+    g.drawString(""+scoreCount, 650 , 390);
+  }
+
  }
  
  //Runs our code

@@ -15,6 +15,7 @@ import java.util.ArrayList;
 public class Enemy extends GameObject{
   // variables
   private int speed, counter, index;
+
   private int width = 40, height = 40;
   private int health = 100;
   private int damage = 10;
@@ -22,8 +23,9 @@ public class Enemy extends GameObject{
   // private int boolean drawDamageIndicator = false;
   public static final int X = 1;
   public static final int Y = 2;
-  private int frameCount = 0;
-  private int playerGraceTime = 100; // frames of invincibility after hitting player
+  public static final int PLAYERGRACETIME = 100;
+  
+  private int frameCount = 0;// frames of invincibility after hitting player
   private  int shooterEnemyBuffer = 0;
   private boolean canDamage = true;
   private int wave;
@@ -33,10 +35,15 @@ public class Enemy extends GameObject{
   private Camera camera;
   private boolean isFrozen;
   private int frozenTime = 0;
+  private int freezePlayerCoolDown;
+
+  private SoundEffect deathSFX = new SoundEffect("Assets/sounds/death.wav");
+  private SoundEffect slapSFX = new SoundEffect("Assets/sounds/Slap.wav");
+  private SoundEffect shootSFX = new SoundEffect("Assets/sounds/shoot-1.wav");
 
   private Player player;
   private BufferedImageLoader loader = new BufferedImageLoader(); 
-  // private BufferedImage enemyImg = loader.loadBuffImg("Assets/characters/Base Zombie/0.png"); 
+  
 
   Handler handler;
   //Constructer for enemy
@@ -49,10 +56,17 @@ public class Enemy extends GameObject{
     this.camera = camera;
   }
 
+
+
+
   //updates movement and if it exists
 
   public void update(){
-    if(frameCount < playerGraceTime){
+    if(type.equals("shootingEnemy")){
+      width = 60;
+      height = 45;
+    }
+    if(frameCount < PLAYERGRACETIME){
       frameCount ++;
     }
     //If enemy is frozen
@@ -73,18 +87,28 @@ public class Enemy extends GameObject{
     //Spawns in wave 3 and shoots at us around every second(+ delay so they don't shoot all at exact time)
     if(type.equals("shootingEnemy") && wave>=3){
       shooterEnemyBuffer ++;
-      if(shooterEnemyBuffer >= 50 && Util.randint(1, 20) == 1){
+      if(shooterEnemyBuffer >= 50 && Util.randint(1, 20) == 1 && !isFrozen){
         shoot(camera);
+        shootSFX.play();
         shooterEnemyBuffer = 0;
       }
 
     }
 
 
-    if(frameCount % playerGraceTime == 0 && canDamage == false){
+    if(frameCount % PLAYERGRACETIME == 0 && canDamage == false){
         canDamage = true;
          
   }
+  
+
+  if (freezePlayerCoolDown > 0) {
+    freezePlayerCoolDown++;
+    System.err.println("player cd " + freezePlayerCoolDown);
+    if (freezePlayerCoolDown >= PLAYERGRACETIME) {
+        freezePlayerCoolDown = 0; // ready to freeze again
+    }
+}
 
      
      
@@ -94,9 +118,15 @@ public class Enemy extends GameObject{
           if(player.getId() == ID.Player){ // is this usless?
             attackingPlayer = true;
             player.getHurt(damage);
+            slapSFX.play();
             counter = 0;
             frameCount = 0;
+             if(freezePlayerCoolDown == 0){
+              player.setFrozen(true);
+              freezePlayerCoolDown = 1;
+            }
             canDamage = false;
+           
 
           }
           // frameCount = 0;
@@ -344,6 +374,8 @@ private ArrayList<Block> checkBlockCollision(){
     health -= damage;
     // drawDamageIndicator = true;
     if(health <= 0){
+      
+      deathSFX.play();
       handler.removeObject(this);
     }
   }
@@ -509,14 +541,30 @@ private ArrayList<Block> checkBlockCollision(){
     BufferedImage enemyImg = loader.loadBuffImg(path);          
     double angle = findAngle();
     AffineTransform rot = new AffineTransform();
+
+    int rotateCenterX;
+    int rotateCenterY;
+
+
+    if(type.equals("attackingEnemy")){
+      rotateCenterX = 24;
+      rotateCenterY = 36;
+
+    }
+
+    else{
+      rotateCenterX = 33;
+      rotateCenterY = 36;
+
+    }
     
-    rot.rotate(angle,width/2.0, height/2.0);    
+    rot.rotate(angle, rotateCenterX, rotateCenterY);    
      
     AffineTransformOp rotOp = new AffineTransformOp(rot, AffineTransformOp.TYPE_BILINEAR);
     Graphics2D g2D = (Graphics2D)g;
-    g2D.drawImage(enemyImg,rotOp, (int) x, (int) y);   
-    // g.setColor(Color.RED);
-    // g.drawRect((int)x, (int)y, width, height);
+    g2D.drawImage(enemyImg,rotOp, (int) x - 10, (int) y - 10);   
+    g.setColor(Color.RED);
+    g.drawRect((int)x, (int)y, width, height);
     if(health<100){
 
     

@@ -9,9 +9,9 @@ import java.util.ArrayList;
 //Controls Players Movements an action
 public class Player extends GameObject{
 
-private int frameCount = 0;
+ private int frameCount = 0;
  private int speed = 6;
- private int superSpeed = speed + 5;
+ private int SUPERSPEED = speed + 5;
  private  int width = 50, height = 56;
  private double angle = 0;
  private int gunDelay = 20;
@@ -21,9 +21,11 @@ private int frameCount = 0;
  private int dashDamage = 50;
  private int superSpeedTime = 0;
  private int superStrengthTime = 0;
+ private int playerFreezeTime = 25;
  private boolean canDash= true;
  private boolean  canSuperSpeed;
  private boolean canSuperStrength;
+ private boolean isFrozen;
  private String currentGun = "PulseRifle";
 
  private int rpgAmmo;
@@ -37,6 +39,7 @@ private int frameCount = 0;
 
  BufferedImageLoader loader = new BufferedImageLoader(); 
  private BufferedImage playerImg = loader.loadBuffImg("Assets/characters/example.png"); 
+ private SoundEffect dashSFX = new SoundEffect("Assets/sounds/dash.wav");
  
     
  Handler handler;
@@ -56,10 +59,24 @@ private int frameCount = 0;
     vx = 0;
     vy = 0;
 
+    if(isFrozen){
+        playerFreezeTime ++;
+        speed = 0;
+    }
+    else{
+        speed = 6;
+    }
+
+    if(playerFreezeTime >= 40){
+        System.err.println("playerFreezeTime:" + playerFreezeTime);
+        isFrozen = false;
+        playerFreezeTime = 0;
+    }
+
     
     
    //FIX SUPERSPEED SO ITS TRUE ON CLICK AND COUNTS DOWN ON CLICK
-    if(powerups.contains("SuperSpeed") && keys[KeyEvent.VK_SHIFT]){
+    if(powerups.contains("SuperSpeed") && keys[KeyEvent.VK_SHIFT] && !isFrozen){
         superSpeedTime ++;
         canSuperSpeed = true;
         if(superSpeedTime >= 250){
@@ -68,10 +85,10 @@ private int frameCount = 0;
             superSpeedTime = 0;
         }
        // System.err.println("I can speed");
-        if (keys[KeyEvent.VK_W]) vy = -superSpeed;
-        if (keys[KeyEvent.VK_S]) vy =  superSpeed;
-        if (keys[KeyEvent.VK_A]) vx = -superSpeed;
-        if (keys[KeyEvent.VK_D]) vx =  superSpeed;
+        if (keys[KeyEvent.VK_W]) vy = -SUPERSPEED;
+        if (keys[KeyEvent.VK_S]) vy =  SUPERSPEED;
+        if (keys[KeyEvent.VK_A]) vx = -SUPERSPEED;
+        if (keys[KeyEvent.VK_D]) vx =  SUPERSPEED;
     }
      else{
         if (keys[KeyEvent.VK_W]) vy = -speed;
@@ -82,7 +99,7 @@ private int frameCount = 0;
     }
     move(keys);
 
-    if (!canDash && frameCount >= 60) {
+    if (!canDash && frameCount >= 60 && !isFrozen) {
         canDash = true;
     }
 
@@ -97,8 +114,8 @@ private int frameCount = 0;
         currentGun = "RPG";
     }
 
-    if(guns.contains("Tranquilzer") && keys[KeyEvent.VK_F]){
-        currentGun = "Tranquilzer";
+    if(guns.contains("Tranquilizer") && keys[KeyEvent.VK_F]){
+        currentGun = "Tranquilizer";
     }
 
     if(keys[KeyEvent.VK_E]){
@@ -110,8 +127,8 @@ private int frameCount = 0;
         currentGun = "PulseRifle";
     }
 
-    if(freezeAmmo == 0 && guns.contains("Tranquilzer")){
-        guns.remove("Tranquilzer");
+    if(freezeAmmo == 0 && guns.contains("Tranquilizer")){
+        guns.remove("Tranquilizer");
         currentGun = "PulseRifle";
     }
     
@@ -149,6 +166,7 @@ private int frameCount = 0;
  }
 
  public void dash(Camera camera, int mouseX, int mouseY) {
+     dashSFX.play();
 //    double cameraX = (double)(x + width / 2 - Main.WIDTH / 2) * 0.1f;
 //     camera.setX((int)cameraX);
 
@@ -182,6 +200,8 @@ private int frameCount = 0;
       }
 }
   
+
+
   //Logic for PLayer SHooting
   public void shoot(int mx, int my, Player player, Camera camera){
  
@@ -390,5 +410,14 @@ public void addGuns(String gun) {
     public String getCurrentGun() {
         return currentGun;
     }
+
+    public boolean isFrozen() {
+        return isFrozen;
+    }
+
+    public void setFrozen(boolean isFrozen) {
+        this.isFrozen = isFrozen;
+    }
+    
 
 }
